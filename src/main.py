@@ -12,7 +12,10 @@ from prance.util.resolver import RESOLVE_INTERNAL
 import time
 
 GH_TOKEN = os.environ["GITHUB_TOKEN"]
-PYTHON_IMPORTS = ["flask", "fastapi", "scarlette", "django", "firetail ", "firetail.", "gevent"]
+PYTHON_IMPORTS = ["flask", "fastapi", "scarlette",
+                  "django", "firetail ", "firetail.", "gevent"]
+request_session = requests.session()
+GITHUB_URL = "https://api.github.com/"
 
 
 class SpecDataValidationError(Exception):
@@ -39,10 +42,6 @@ def resolve_and_validate_spec_data(spec_data: dict) -> dict:
         raise SpecDataValidationError()
 
     return spec_data
-
-
-request_session = requests.session()
-GITHUB_URL = "https://api.github.com/"
 
 
 def load_key(key_path):
@@ -110,20 +109,6 @@ def installation_repositories(token, installation_id):
     return response
 
 
-def list_repos(token, repo_name):
-    g = github.Github(token)
-    print(token)
-    user = g.get_user()
-    print("here", user.organizations_url)
-    repos = user.get_repos()
-    for repo in repos:
-        print("Repository: ", repo.name)
-        print("Description: ", repo.description)
-        print("URL: ", repo.url)
-        print("")
-    return repos
-
-
 def get_repo_languages(token, repo_name):
     repo_name = repo_name.lower()
     response = request_session.get(
@@ -148,7 +133,7 @@ def get_files_in_repo(github_object, repo_name):
     except requests.exceptions.ConnectTimeout:
         time.sleep(10)
         contents = repo.get_contents("")
-    
+
     file_list = []
     while len(contents) > 0:
         file_content = contents.pop(0)
@@ -190,7 +175,7 @@ def list_orgs_for_user(token):
     return repos
 
 
-def process_repo(token, repo_name):
+def process_repo(token: str, repo_name: str):
     specs_discovered = {}
     frameworks_identified = []
     github_object = github.Github(token)
@@ -208,7 +193,8 @@ def process_repo(token, repo_name):
         if spec_data := detect_openapi_specs(github_object, repo_name, file_path):
             specs_discovered[file_path] = spec_data
         if "Python" in languages and file_path.endswith(".py"):
-            file_contents = read_file_contents(github_object, repo_name, file_path)
+            file_contents = read_file_contents(
+                github_object, repo_name, file_path)
             frameworks_identified += identify_api_framework(file_contents)
     frameworks_identified = list(dict.fromkeys(frameworks_identified))
     return frameworks_identified, specs_discovered
@@ -239,7 +225,7 @@ def detect_openapi_specs(github_object, repo_name, file_path):
 
 def process_all_repos(token):
     gh_repositories = list_orgs_for_user(token)
-    
+
     for repo in gh_repositories:
         api_details = process_repo(token, repo)
         print(repo, api_details)
