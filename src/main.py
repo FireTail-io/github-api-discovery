@@ -14,7 +14,7 @@ import time
 GH_TOKEN = os.environ["GITHUB_TOKEN"]
 PYTHON_IMPORTS = ["flask", "fastapi", "scarlette",
                   "django", "firetail ", "firetail.", "gevent"]
-request_session = requests.session()
+REQUEST_SESSION = requests.session()
 GITHUB_URL = "https://api.github.com/"
 
 
@@ -62,7 +62,7 @@ def get_auth_token(gh_app_id: str, key_path: str):
 
 
 def get_repositories(token):
-    response = request_session.get(
+    response = REQUEST_SESSION.get(
         url=f"{GITHUB_URL}user/org",
         headers={
             "Authorization": f"Bearer {token}",
@@ -74,7 +74,7 @@ def get_repositories(token):
 
 
 def get_meta(token):
-    response = request_session.get(
+    response = REQUEST_SESSION.get(
         url=f"{GITHUB_URL}user/orgs",
         headers={
             "Authorization": f"Bearer {token}",
@@ -86,7 +86,7 @@ def get_meta(token):
 
 
 def get_token_from_install(token, installation_id):
-    response = request_session.post(
+    response = REQUEST_SESSION.post(
         url=f"{GITHUB_URL}app/installations/{installation_id}/access_tokens",
         headers={
             "Authorization": f"Bearer {token}",
@@ -98,7 +98,7 @@ def get_token_from_install(token, installation_id):
 
 
 def installation_repositories(token, installation_id):
-    response = request_session.post(
+    response = REQUEST_SESSION.post(
         url=f"{GITHUB_URL}installation/repositories",
         headers={
             "Authorization": f"Bearer {token}",
@@ -111,7 +111,7 @@ def installation_repositories(token, installation_id):
 
 def get_repo_languages(token, repo_name):
     repo_name = repo_name.lower()
-    response = request_session.get(
+    response = REQUEST_SESSION.get(
         url=f"{GITHUB_URL}repos/{repo_name}/languages",
         headers={
             "Authorization": f"Bearer {token}",
