@@ -4,9 +4,9 @@ from prance.util.resolver import RESOLVE_INTERNAL
 import yaml
 
 
-def resolve_and_validate_openapi_spec(spec_data: dict) -> bool:
+def resolve_and_validate_openapi_spec(file_contents: dict) -> bool:
     parser = prance.ResolvingParser(
-        spec_string=json.dumps(spec_data),
+        spec_string=json.dumps(file_contents),
         resolve_types=RESOLVE_INTERNAL,
         backend="openapi-spec-validator",
         lazy=True,
@@ -22,14 +22,17 @@ def resolve_and_validate_openapi_spec(spec_data: dict) -> bool:
 def is_openapi_spec(file_path: str, file_contents: str) -> bool:
     if file_path.endswith(".json"):
         try:
-            file_dict = json.loads(file_contents)
+            file_contents = json.loads(file_contents)
         except:
             return False
 
-    if file_path.endswith((".yaml", ".yml")):
+    elif file_path.endswith((".yaml", ".yml")):
         try:
-            file_dict = yaml.safe_load(file_contents)
+            file_contents = yaml.safe_load(file_contents)
         except:
             return False
 
-    return resolve_and_validate_openapi_spec(file_dict)
+    else:
+        return False
+
+    return resolve_and_validate_openapi_spec(file_contents)
