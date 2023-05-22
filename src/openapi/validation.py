@@ -1,11 +1,11 @@
 import json
-from prance import ResolvingParser
+import prance
 from prance.util.resolver import RESOLVE_INTERNAL
-from exceptions import SpecDataValidationError
+import yaml
 
 
-def is_spec_valid(spec_data: dict) -> bool:
-    parser = ResolvingParser(
+def resolve_and_validate_openapi_spec(spec_data: dict) -> bool:
+    parser = prance.ResolvingParser(
         spec_string=json.dumps(spec_data),
         resolve_types=RESOLVE_INTERNAL,
         backend="openapi-spec-validator",
@@ -13,14 +13,23 @@ def is_spec_valid(spec_data: dict) -> bool:
     )
     try:
         parser.parse()
-    except Exception:
+    except prance.ValidationError:
         # In the future, maybe we can provide some proper details here.
         return False
     return True
 
 
-def resolve_and_validate_spec_data(spec_data: dict) -> dict:
-    if not is_spec_valid(spec_data):
-        raise SpecDataValidationError()
+def is_openapi_spec(file_path: str, file_contents: str):
+    if file_path.endswith(".json"):
+        try:
+            file_dict = json.loads(file_contents)
+        except:
+            return False
 
-    return spec_data
+    if file_path.endswith((".yaml", ".yml")):
+        try:
+            file_dict = yaml.safe_load(file_contents)
+        except:
+            return False
+
+    return resolve_and_validate_openapi_spec(file_dict)

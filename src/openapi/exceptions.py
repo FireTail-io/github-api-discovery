@@ -1,2 +1,0 @@
-class SpecDataValidationError(Exception):
-    pass

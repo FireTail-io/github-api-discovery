@@ -1,56 +1,11 @@
-from typing import List
-import requests
+from typing import List, Tuple
 import github
 from github import Github as GithubClient
 from github.Repository import Repository as GithubRepository
-import base64
-import yaml
-import json
-import time
 
-from consts import REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL
-from openapi.validation import resolve_and_validate_spec_data
-
-
-def get_repo_languages(token, repo_name):
-    repo_name = repo_name.lower()
-    response = REQUEST_SESSION.get(
-        url=f"{GITHUB_URL}repos/{repo_name}/languages",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_files_in_repo(github_object, repo_name):
-    try:
-        repo = github_object.get_repo(repo_name)
-    except requests.exceptions.ConnectTimeout:
-        time.sleep(10)
-        repo = github_object.get_repo(repo_name)
-    try:
-        contents = repo.get_contents("")
-    except requests.exceptions.ConnectTimeout:
-        time.sleep(10)
-        contents = repo.get_contents("")
-
-    file_list = []
-    while len(contents) > 0:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            file_list.append(file_content.path)
-    return file_list
-
-
-def read_file_contents(github_object, repo_name, file_path):
-    repo = github_object.get_repo(repo_name)
-    a = repo.get_contents(file_path)
-    return base64.b64decode(a.content).decode().replace("\\r", "").replace("\\n", "\n")
+from consts import PYTHON_IMPORTS
+from openapi.validation import is_openapi_spec
+from utils import respect_rate_limit
 
 
 def identify_api_framework(contents):
@@ -77,60 +32,49 @@ def get_repositories_to_scan(github_client: GithubClient) -> List[GithubReposito
     return repositories_to_scan
 
 
-def process_repo(token: str, repo_name: str):
-    specs_discovered = {}
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> Tuple[List[str], dict[str, str]]:
+    openapi_specs_discovered = {}
     frameworks_identified = []
-    github_object = github.Github(token)
-    languages = get_repo_languages(token, repo_name).json()
-    time.sleep(10)
-    try:
-        files = get_files_in_repo(github_object, repo_name)
-    except github.GithubException:
-        return [], {}
-    for file_path in files:
-        if file_path.startswith((".github", "__test", "test", "tests", ".env", "node_modules/", "example")):
+
+    repository_languages = respect_rate_limit(repository.get_languages, github_client)
+
+    repository_contents = respect_rate_limit(lambda: repository.get_contents(""), github_client)
+    if not isinstance(repository_contents, list):
+        repository_contents = [repository_contents]
+
+    for file in repository_contents:
+        file_path = respect_rate_limit(lambda: file.path, github_client)
+
+        IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
+        if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
             continue
-        if file_path.contains(("/test", "")):
+
+        IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
+        if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
             continue
-        if spec_data := detect_openapi_specs(github_object, repo_name, file_path):
-            specs_discovered[file_path] = spec_data
-        if "Python" in languages and file_path.endswith(".py"):
-            file_contents = read_file_contents(github_object, repo_name, file_path)
+
+        file_contents = respect_rate_limit(lambda: file.content, github_client)
+        if file_contents is None:
+            continue
+
+        if is_openapi_spec(file.path, file_contents):
+            openapi_specs_discovered[file_path] = file_contents
+
+        if "Python" in repository_languages and file_path.endswith(".py"):
             frameworks_identified += identify_api_framework(file_contents)
+
     frameworks_identified = list(dict.fromkeys(frameworks_identified))
-    return frameworks_identified, specs_discovered
+
+    return frameworks_identified, openapi_specs_discovered
 
 
-def detect_openapi_specs(github_object, repo_name, file_path):
-    if file_path.endswith(".json"):
-        file_contents = read_file_contents(github_object, repo_name, file_path)
-        try:
-            file_dict = json.loads(file_contents)
-            return resolve_and_validate_spec_data(file_dict)
-        except Exception:
-            # print(str(e))
-            return False
-
-    if file_path.endswith((".yaml", ".yml")):
-        file_contents = read_file_contents(github_object, repo_name, file_path)
-        if isinstance(file_contents, str):
-            try:
-                file_dict = yaml.safe_load(file_contents)
-                return resolve_and_validate_spec_data(file_dict)
-            except Exception:
-                # print(str(e))
-                # print(traceback.format_exc())
-                return False
-        return file_contents
-
-
-def process_all_repos(github_token: str):
+def scan_with_token(github_token: str):
     github_client = github.Github(github_token)
 
     repositories_to_scan = get_repositories_to_scan(github_client)
 
     for repo in repositories_to_scan:
-        api_details = process_repo(github_token, repo.full_name)
+        api_details = scan_repository(github_token, repo.full_name)
         print(repo.full_name, api_details)
 
 
