@@ -1,6 +1,7 @@
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 import github
 from github import Github as GithubClient
+from github.ContentFile import ContentFile as GithubContentFile
 from github.Repository import Repository as GithubRepository
 
 from env import GITHUB_TOKEN
@@ -9,19 +10,33 @@ from static_analysis import get_language_analysers
 from utils import respect_rate_limit
 
 
-def get_repositories_to_scan(github_client: GithubClient) -> List[GithubRepository]:
-    repositories_to_scan = []
+def scan_file(
+    file: GithubContentFile, github_client: GithubClient, language_analysers: list[Callable[[str, str], list[str]]]
+) -> Tuple[List[str], dict[str, str]]:
+    file_path = respect_rate_limit(lambda: file.path, github_client)
 
-    for repo in github_client.get_user().get_repos():
-        if repo.fork:
-            continue
+    IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
+    if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
+        return [], {}
 
-        if repo.archived:
-            continue
+    IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
+    if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
+        return [], {}
 
-        repositories_to_scan.append(repo)
+    file_contents = respect_rate_limit(lambda: file.content, github_client)
+    if file_contents is None:
+        return [], {}
 
-    return repositories_to_scan
+    openapi_specs_discovered = {}
+    frameworks_identified = []
+
+    if is_openapi_spec(file.path, file_contents):
+        openapi_specs_discovered[file_path] = file_contents
+
+    for language_analyser in language_analysers:
+        frameworks_identified += language_analyser(file_path, file_contents)
+
+    return frameworks_identified, openapi_specs_discovered
 
 
 def scan_repository(github_client: GithubClient, repository: GithubRepository) -> Tuple[List[str], dict[str, str]]:
@@ -40,27 +55,31 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     print(f"Scanning {len(repository_contents)} files in repo...")
 
     for file in repository_contents:
-        file_path = respect_rate_limit(lambda: file.path, github_client)
-
-        IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
-        if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
+        try:
+            new_frameworks_identified, new_openapi_specs_discovered = scan_file(file, github_client, language_analysers)
+        except github.GithubException as exception:
+            print(f"Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
             continue
 
-        IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
-        if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
-            continue
-
-        file_contents = respect_rate_limit(lambda: file.content, github_client)
-        if file_contents is None:
-            continue
-
-        if is_openapi_spec(file.path, file_contents):
-            openapi_specs_discovered[file_path] = file_contents
-
-        for language_analyser in language_analysers:
-            frameworks_identified += language_analyser(file_path, file_contents)
+        frameworks_identified += new_frameworks_identified
+        openapi_specs_discovered = {**openapi_specs_discovered, **new_openapi_specs_discovered}
 
     return frameworks_identified, openapi_specs_discovered
+
+
+def get_repositories_to_scan(github_client: GithubClient) -> List[GithubRepository]:
+    repositories_to_scan = []
+
+    for repo in github_client.get_user().get_repos():
+        if repo.fork:
+            continue
+
+        if repo.archived:
+            continue
+
+        repositories_to_scan.append(repo)
+
+    return repositories_to_scan
 
 
 def scan_with_token(github_token: str) -> None:
@@ -70,7 +89,14 @@ def scan_with_token(github_token: str) -> None:
 
     for repo in repositories_to_scan:
         print(f"Scanning {repo.full_name}...")
-        frameworks_identified, openapi_specs_discovered = scan_repository(github_token, repo)
+
+        try:
+            frameworks_identified, openapi_specs_discovered = scan_repository(github_token, repo)
+
+        except github.GithubException as exception:
+            print(f"Failed to scan f{repo.full_name}, exception raised: {exception}")
+            continue
+
         print(repo.full_name, frameworks_identified, openapi_specs_discovered)
 
 
