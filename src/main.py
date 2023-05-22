@@ -1,7 +1,4 @@
-import datetime
 import requests
-import jwt
-import datetime
 import github
 import base64
 import yaml
@@ -10,23 +7,6 @@ import time
 
 from consts import REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL
 from openapi.validation import resolve_and_validate_spec_data
-
-
-def load_key(key_path):
-    with open(key_path, "r") as key_file:
-        key = key_file.read()
-    return key
-
-
-def get_auth_token(gh_app_id: str, key_path: str):
-    key = load_key(key_path)
-    now = int(datetime.datetime.now().timestamp())
-    payload = {
-        "iat": now - 60,
-        "exp": now + 60 * 8,  # expire after 8 minutes
-        "iss": gh_app_id,
-    }
-    return jwt.encode(payload=payload, key=key, algorithm="RS256")
 
 
 def get_repositories(token):
