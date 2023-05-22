@@ -9,54 +9,6 @@ from consts import REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL
 from openapi.validation import resolve_and_validate_spec_data
 
 
-def get_repositories(token):
-    response = REQUEST_SESSION.get(
-        url=f"{GITHUB_URL}user/org",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_meta(token):
-    response = REQUEST_SESSION.get(
-        url=f"{GITHUB_URL}user/orgs",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_token_from_install(token, installation_id):
-    response = REQUEST_SESSION.post(
-        url=f"{GITHUB_URL}app/installations/{installation_id}/access_tokens",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def installation_repositories(token, installation_id):
-    response = REQUEST_SESSION.post(
-        url=f"{GITHUB_URL}installation/repositories",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
 def get_repo_languages(token, repo_name):
     repo_name = repo_name.lower()
     response = REQUEST_SESSION.get(
