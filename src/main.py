@@ -69,7 +69,7 @@ def scan_with_token(github_token: str) -> None:
     repositories_to_scan = get_repositories_to_scan(github_client)
 
     for repo in repositories_to_scan:
-        print(f"Scanning f{repo.full_name}...")
+        print(f"Scanning {repo.full_name}...")
         frameworks_identified, openapi_specs_discovered = scan_repository(github_token, repo)
         print(repo.full_name, frameworks_identified, openapi_specs_discovered)
 
