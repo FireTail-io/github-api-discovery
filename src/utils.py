@@ -8,10 +8,10 @@ FuncReturnType = TypeVar("FuncReturnType")
 
 
 def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: GithubClient) -> FuncReturnType:
-    result = None
-    while result is None:
+    while True:
         try:
-            result = func()
+            return func()
+
         except github.RateLimitExceededException:
             rate_limit = github_client.get_rate_limit()
             print(f"Rate limited calling {func}, waiting {rate_limit.core} second(s)...")
