@@ -1,5 +1,8 @@
+from typing import List
 import requests
 import github
+from github import Github as GithubClient
+from github.Repository import Repository as GithubRepository
 import base64
 import yaml
 import json
@@ -63,16 +66,15 @@ def identify_api_framework(contents):
     return imports_discovered
 
 
-def list_orgs_for_user(token):
-    repos = []
-    github_object = github.Github(token)
-    for repo in github_object.get_user().get_repos():
+def get_repositories_to_scan(github_client: GithubClient) -> List[GithubRepository]:
+    repositories_to_scan = []
+    for repo in github_client.get_user().get_repos():
         if repo.fork:
             continue
         if repo.archived:
             continue
-        repos.append(repo.full_name)
-    return repos
+        repositories_to_scan.append(repo)
+    return repositories_to_scan
 
 
 def process_repo(token: str, repo_name: str):
@@ -122,12 +124,14 @@ def detect_openapi_specs(github_object, repo_name, file_path):
         return file_contents
 
 
-def process_all_repos(token):
-    gh_repositories = list_orgs_for_user(token)
+def process_all_repos(github_token: str):
+    github_client = github.Github(github_token)
 
-    for repo in gh_repositories:
-        api_details = process_repo(token, repo)
-        print(repo, api_details)
+    repositories_to_scan = get_repositories_to_scan(github_client)
+
+    for repo in repositories_to_scan:
+        api_details = process_repo(github_token, repo.full_name)
+        print(repo.full_name, api_details)
 
 
 def main():
