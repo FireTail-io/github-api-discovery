@@ -10,7 +10,7 @@ from prance import ResolvingParser
 from prance.util.resolver import RESOLVE_INTERNAL
 import time
 
-from consts import (REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL)
+from consts import REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL
 
 
 class SpecDataValidationError(Exception):
@@ -188,8 +188,7 @@ def process_repo(token: str, repo_name: str):
         if spec_data := detect_openapi_specs(github_object, repo_name, file_path):
             specs_discovered[file_path] = spec_data
         if "Python" in languages and file_path.endswith(".py"):
-            file_contents = read_file_contents(
-                github_object, repo_name, file_path)
+            file_contents = read_file_contents(github_object, repo_name, file_path)
             frameworks_identified += identify_api_framework(file_contents)
     frameworks_identified = list(dict.fromkeys(frameworks_identified))
     return frameworks_identified, specs_discovered
