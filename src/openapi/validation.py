@@ -19,7 +19,7 @@ def resolve_and_validate_openapi_spec(spec_data: dict) -> bool:
     return True
 
 
-def is_openapi_spec(file_path: str, file_contents: str):
+def is_openapi_spec(file_path: str, file_contents: str) -> bool:
     if file_path.endswith(".json"):
         try:
             file_dict = json.loads(file_contents)

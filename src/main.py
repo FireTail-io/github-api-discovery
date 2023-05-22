@@ -59,7 +59,7 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     return frameworks_identified, openapi_specs_discovered
 
 
-def scan_with_token(github_token: str):
+def scan_with_token(github_token: str) -> None:
     github_client = github.Github(github_token)
 
     repositories_to_scan = get_repositories_to_scan(github_client)

@@ -3,13 +3,13 @@ from datetime import datetime
 import jwt
 
 
-def load_key(key_path):
+def load_key(key_path: str) -> str:
     with open(key_path, "r") as key_file:
         key = key_file.read()
     return key
 
 
-def get_auth_token(gh_app_id: str, key_path: str):
+def get_auth_token(gh_app_id: str, key_path: str) -> str:
     key = load_key(key_path)
     now = int(datetime.now().timestamp())
     payload = {
