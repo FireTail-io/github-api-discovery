@@ -1,3 +1,3 @@
 import os
 
-GH_TOKEN = os.environ["GITHUB_TOKEN"]
+GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]

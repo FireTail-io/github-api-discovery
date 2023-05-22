@@ -3,6 +3,7 @@ import github
 from github import Github as GithubClient
 from github.Repository import Repository as GithubRepository
 
+from env import GITHUB_TOKEN
 from openapi.validation import is_openapi_spec
 from static_analysis import get_language_analysers
 from utils import respect_rate_limit
@@ -70,4 +71,7 @@ def scan_with_token(github_token: str) -> None:
 
 
 def main():
-    pass
+    scan_with_token(GITHUB_TOKEN)
+
+
+main()
