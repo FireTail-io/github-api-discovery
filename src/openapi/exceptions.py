@@ -1,0 +1,2 @@
+class SpecDataValidationError(Exception):
+    pass

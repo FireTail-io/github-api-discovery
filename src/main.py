@@ -6,37 +6,10 @@ import github
 import base64
 import yaml
 import json
-from prance import ResolvingParser
-from prance.util.resolver import RESOLVE_INTERNAL
 import time
 
 from consts import REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL
-
-
-class SpecDataValidationError(Exception):
-    pass
-
-
-def is_spec_valid(spec_data: dict) -> bool:
-    parser = ResolvingParser(
-        spec_string=json.dumps(spec_data),
-        resolve_types=RESOLVE_INTERNAL,
-        backend="openapi-spec-validator",
-        lazy=True,
-    )
-    try:
-        parser.parse()
-    except Exception:
-        # In the future, maybe we can provide some proper details here.
-        return False
-    return True
-
-
-def resolve_and_validate_spec_data(spec_data: dict) -> dict:
-    if not is_spec_valid(spec_data):
-        raise SpecDataValidationError()
-
-    return spec_data
+from openapi.validation import resolve_and_validate_spec_data
 
 
 def load_key(key_path):
