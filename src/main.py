@@ -6,16 +6,11 @@ import github
 import base64
 import yaml
 import json
-import os
 from prance import ResolvingParser
 from prance.util.resolver import RESOLVE_INTERNAL
 import time
 
-GH_TOKEN = os.environ["GITHUB_TOKEN"]
-PYTHON_IMPORTS = ["flask", "fastapi", "scarlette",
-                  "django", "firetail ", "firetail.", "gevent"]
-REQUEST_SESSION = requests.session()
-GITHUB_URL = "https://api.github.com/"
+from consts import (REQUEST_SESSION, PYTHON_IMPORTS, GITHUB_URL)
 
 
 class SpecDataValidationError(Exception):
