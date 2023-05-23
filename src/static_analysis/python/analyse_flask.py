@@ -36,9 +36,6 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
     if flask_class_token is None:
         return {}
 
-    print("flask_module_token:", flask_module_token)
-    print("flask_class_token:", flask_class_token)
-
     # Determine the token the Flask instance was assigned to, e.g:
     # app = Flask() -> "app"
     flask_object_token: str | None = None
@@ -64,8 +61,6 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
                 break
     if flask_object_token is None:
         return {}
-
-    print("flask_object_token:", flask_object_token)
 
     # Look for decorators using the `route` method on the flask object
     for node in module.body:
