@@ -1,4 +1,4 @@
-from src.static_analysis import analyse_python
+from static_analysis import analyse_python
 
 
 def test_analyse_flask_hello_world():
