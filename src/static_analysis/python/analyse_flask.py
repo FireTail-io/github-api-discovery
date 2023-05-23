@@ -47,12 +47,14 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
             if (
                 (
                     # An ImportFrom, e.g. from flask import Flask or from flask import Flask as F
-                    type(node.value.func) == ast.Name
+                    flask_module_token is None
+                    and type(node.value.func) == ast.Name
                     and node.value.func.id == flask_class_token
                 )
                 or (
                     # A regular import, e.g. import flask or import flask as f
-                    type(node.value.func) == ast.Attribute
+                    flask_module_token is not None
+                    and type(node.value.func) == ast.Attribute
                     and type(node.value.func.value) == ast.Name
                     and node.value.func.value.id == flask_module_token
                     and node.value.func.attr == flask_class_token
