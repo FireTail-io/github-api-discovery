@@ -17,7 +17,7 @@ def get_imports(module: ast.Module) -> list[str]:
     return imports
 
 
-def analyse_python(file_path: str, file_contents: str) -> tuple[set[str], dict[str, str]]:
+def analyse_python(file_path: str, file_contents: str) -> tuple[set[str], dict[str, list[str]]]:
     if not file_path.endswith(".py"):
         return (set(), {})
 
@@ -32,7 +32,7 @@ def analyse_python(file_path: str, file_contents: str) -> tuple[set[str], dict[s
 
     DETECTED_FRAMEWORKS = set(imported_modules).intersection(FRAMEWORK_MODULES)
 
-    routes: dict[str, str] = {}
+    routes: dict[str, list[str]] = {}
 
     if "flask" in DETECTED_FRAMEWORKS:
         routes = get_routes(parsed_module)
