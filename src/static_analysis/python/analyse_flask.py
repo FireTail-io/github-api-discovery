@@ -15,22 +15,21 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
     flask_module_token: str | None = None
     flask_class_token: str | None = None
     for node in module.body:
-        match type(node):
-            case ast.ImportFrom:
-                if node.module is None or node.module != "flask":
+        if type(node) == ast.ImportFrom:
+            if node.module is None or node.module != "flask":
+                continue
+            for name in node.names:
+                if name.name != "Flask":
                     continue
-                for name in node.names:
-                    if name.name != "Flask":
-                        continue
-                    flask_class_token = name.asname or name.name
-                    break
-            case ast.Import:
-                for alias in node.names:
-                    if alias.name != "flask":
-                        continue
-                    flask_module_token = alias.asname or alias.name
-                    flask_class_token = "Flask"
-                    break
+                flask_class_token = name.asname or name.name
+                break
+        elif type(node) == ast.Import:
+            for alias in node.names:
+                if alias.name != "flask":
+                    continue
+                flask_module_token = alias.asname or alias.name
+                flask_class_token = "Flask"
+                break
         if flask_class_token is not None:
             break
     if flask_class_token is None:
