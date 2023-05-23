@@ -6,12 +6,12 @@ from github.Repository import Repository as GithubRepository
 
 from env import GITHUB_TOKEN
 from openapi.validation import is_openapi_spec
-from static_analysis import get_language_analysers
+from static_analysis import ANALYSER_TYPE, get_language_analysers
 from utils import respect_rate_limit
 
 
 def scan_file(
-    file: GithubContentFile, github_client: GithubClient, language_analysers: list[Callable[[str, str], set[str]]]
+    file: GithubContentFile, github_client: GithubClient, language_analysers: list[ANALYSER_TYPE]
 ) -> tuple[set[str], dict[str, str]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
@@ -34,14 +34,15 @@ def scan_file(
         openapi_specs_discovered[file_path] = file_contents
 
     for language_analyser in language_analysers:
-        frameworks_identified.update(language_analyser(file_path, file_contents))
+        frameworks, _ = language_analyser(file_path, file_contents)
+        frameworks_identified.update(frameworks)
 
     return frameworks_identified, openapi_specs_discovered
 
 
-def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[list[str], dict[str, str]]:
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, str]]:
+    frameworks_identified: set[str] = set()
     openapi_specs_discovered: dict[str, str] = {}
-    frameworks_identified: list[str] = []
 
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
     print(f"repository_languages: {repository_languages}")
@@ -61,7 +62,7 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
             print(f"Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
             continue
 
-        frameworks_identified += new_frameworks_identified
+        frameworks_identified.update(new_frameworks_identified)
         openapi_specs_discovered = {**openapi_specs_discovered, **new_openapi_specs_discovered}
 
     return frameworks_identified, openapi_specs_discovered
