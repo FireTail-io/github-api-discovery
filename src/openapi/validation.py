@@ -1,6 +1,6 @@
 import json
-import prance
-from prance.util.resolver import RESOLVE_INTERNAL
+import prance  # type: ignore
+from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
 import yaml
 
 
