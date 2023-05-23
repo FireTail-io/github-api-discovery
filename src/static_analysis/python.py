@@ -17,12 +17,12 @@ def get_imports(module: ast.Module) -> list[str]:
 
 def analyse_python(file_path: str, file_contents: str) -> set[str]:
     if not file_path.endswith(".py"):
-        return []
+        return set()
 
     try:
         parsed_module = ast.parse(file_contents)
     except SyntaxError:
-        return []
+        return set()
 
     imported_modules = get_imports(parsed_module)
 

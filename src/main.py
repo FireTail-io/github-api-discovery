@@ -11,30 +11,30 @@ from utils import respect_rate_limit
 
 
 def scan_file(
-    file: GithubContentFile, github_client: GithubClient, language_analysers: list[Callable[[str, str], list[str]]]
-) -> Tuple[List[str], dict[str, str]]:
+    file: GithubContentFile, github_client: GithubClient, language_analysers: list[Callable[[str, str], set[str]]]
+) -> Tuple[set[str], dict[str, str]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
     IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
     if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
-        return [], {}
+        return set(), {}
 
     IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
     if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
-        return [], {}
+        return set(), {}
 
     file_contents = respect_rate_limit(lambda: file.content, github_client)
     if file_contents is None:
-        return [], {}
+        return set(), {}
 
     openapi_specs_discovered = {}
-    frameworks_identified = []
+    frameworks_identified: set[str] = set()
 
     if is_openapi_spec(file.path, file_contents):
         openapi_specs_discovered[file_path] = file_contents
 
     for language_analyser in language_analysers:
-        frameworks_identified += language_analyser(file_path, file_contents)
+        frameworks_identified.update(language_analyser(file_path, file_contents))
 
     return frameworks_identified, openapi_specs_discovered
 
