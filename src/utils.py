@@ -1,3 +1,4 @@
+import datetime
 import time
 from typing import Callable, TypeVar
 import github
@@ -15,4 +16,4 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
         except github.RateLimitExceededException:
             rate_limit = github_client.get_rate_limit()
             print(f"Rate limited calling {func}, waiting {rate_limit.core} second(s)...")
-            time.sleep(rate_limit.core)
+            time.sleep((datetime.datetime.now() - github_client.get_rate_limit().core.reset).seconds)
