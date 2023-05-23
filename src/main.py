@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple
+from typing import Callable
 import github
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
@@ -12,7 +12,7 @@ from utils import respect_rate_limit
 
 def scan_file(
     file: GithubContentFile, github_client: GithubClient, language_analysers: list[Callable[[str, str], set[str]]]
-) -> Tuple[set[str], dict[str, str]]:
+) -> tuple[set[str], dict[str, str]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
     IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
@@ -39,7 +39,7 @@ def scan_file(
     return frameworks_identified, openapi_specs_discovered
 
 
-def scan_repository(github_client: GithubClient, repository: GithubRepository) -> Tuple[List[str], dict[str, str]]:
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[list[str], dict[str, str]]:
     openapi_specs_discovered: dict[str, str] = {}
     frameworks_identified: list[str] = []
 
@@ -67,7 +67,7 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     return frameworks_identified, openapi_specs_discovered
 
 
-def get_repositories_to_scan(github_client: GithubClient) -> List[GithubRepository]:
+def get_repositories_to_scan(github_client: GithubClient) -> list[GithubRepository]:
     repositories_to_scan = []
 
     for repo in github_client.get_user().get_repos():
