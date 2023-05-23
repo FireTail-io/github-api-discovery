@@ -6,7 +6,7 @@ def get_imports(module: ast.Module) -> list[str]:
 
     # NOTE: we could create a more advanced visitor, but scanning the top level for imports is fine for now.
     for node in module.body:
-        if isinstance(node, ast.ImportFrom):
+        if isinstance(node, ast.ImportFrom) and node.module is not None:
             imports.append(node.module)
         elif isinstance(node, ast.Import):
             for alias in node.names:
