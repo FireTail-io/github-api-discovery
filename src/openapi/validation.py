@@ -4,7 +4,7 @@ from prance.util.resolver import RESOLVE_INTERNAL
 import yaml
 
 
-def resolve_and_validate_openapi_spec(file_contents: dict) -> bool:
+def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
     parser = prance.ResolvingParser(
         spec_string=json.dumps(file_contents),
         resolve_types=RESOLVE_INTERNAL,
