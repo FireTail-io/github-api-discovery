@@ -23,13 +23,13 @@ def is_openapi_spec(file_path: str, file_contents: str) -> bool:
     if file_path.endswith(".json"):
         try:
             file_contents = json.loads(file_contents)
-        except:
+        except:  # noqa: E722
             return False
 
     elif file_path.endswith((".yaml", ".yml")):
         try:
             file_contents = yaml.safe_load(file_contents)
-        except:
+        except:  # noqa: E722
             return False
 
     else:
