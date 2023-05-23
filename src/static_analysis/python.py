@@ -1,23 +1,31 @@
-PYTHON_FRAMEWORK_IMPORTS = ["flask", "fastapi", "scarlette", "django", "firetail ", "firetail.", "gevent"]
+import ast
 
 
-def identify_frameworks_by_imports(file_path: str, file_contents: str) -> list[str]:
-    imports_discovered = []
+def get_imports(module: ast.Module) -> list[str]:
+    imports: list[str] = []
 
-    for module in PYTHON_FRAMEWORK_IMPORTS:
-        if f"{module}" not in file_contents:
-            continue
-        if f"from {module}" in file_contents:
-            imports_discovered.append(module)
-        if f"import {module}" in file_contents:
-            if module not in imports_discovered:
-                imports_discovered.append(module)
+    # NOTE: we could create a more advanced visitor, but scanning the top level for imports is fine for now.
+    for node in module.body:
+        if isinstance(node, ast.ImportFrom):
+            imports.append(node.module)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                imports.append(alias.name)
 
-    return imports_discovered
+    return imports
 
 
-def identify_frameworks(file_path: str, file_contents: str) -> list[str]:
+def analyse_python(file_path: str, file_contents: str) -> set[str]:
     if not file_path.endswith(".py"):
         return []
 
-    return identify_frameworks_by_imports(file_path, file_contents)
+    try:
+        parsed_module = ast.parse(file_contents)
+    except SyntaxError:
+        return []
+
+    imported_modules = get_imports(parsed_module)
+
+    FRAMEWORK_MODULES = {"flask", "fastapi", "scarlette", "django", "firetail" "gevent"}
+
+    return set(imported_modules).intersection(FRAMEWORK_MODULES)

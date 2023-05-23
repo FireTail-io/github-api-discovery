@@ -1,7 +1,7 @@
 from typing import Callable
-from static_analysis.python import identify_frameworks as identify_python_frameworks
+from static_analysis.python import analyse_python
 
-LANGUAGE_ANALYSERS: dict[str, list[Callable[[str, str], list[str]]]] = {"Python": [identify_python_frameworks]}
+LANGUAGE_ANALYSERS: dict[str, list[Callable[[str, str], list[str]]]] = {"Python": [analyse_python]}
 
 
 def get_language_analysers(languages: list[str]) -> list[Callable[[str, str], list[str]]]:
