@@ -1,5 +1,5 @@
 from typing import Callable
-from static_analysis.python import analyse_python
+from static_analysis.python.analyse_python import analyse_python
 
 LANGUAGE_ANALYSERS: dict[str, list[Callable[[str, str], set[str]]]] = {"Python": [analyse_python]}
 
