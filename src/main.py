@@ -91,7 +91,7 @@ def scan_with_token(github_token: str) -> None:
         print(f"Scanning {repo.full_name}...")
 
         try:
-            frameworks_identified, openapi_specs_discovered = scan_repository(github_token, repo)
+            frameworks_identified, openapi_specs_discovered = scan_repository(github_client, repo)
 
         except github.GithubException as exception:
             print(f"Failed to scan f{repo.full_name}, exception raised: {exception}")
