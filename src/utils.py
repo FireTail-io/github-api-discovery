@@ -1,9 +1,9 @@
 import datetime
 import time
 from typing import Callable, TypeVar
+
 import github
 from github import Github as GithubClient
-
 
 FuncReturnType = TypeVar("FuncReturnType")
 
