@@ -1,3 +1,4 @@
+import base64
 import github
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
@@ -34,7 +35,10 @@ def scan_file(
         return set(), {}
 
     def get_file_contents():
-        return respect_rate_limit(lambda: file.content, github_client)
+        encoded_content = respect_rate_limit(lambda: file.content, github_client)
+        if encoded_content is None:
+            return ""
+        return base64.b64decode(encoded_content)
 
     openapi_specs_discovered = {}
     frameworks_identified: set[str] = set()
