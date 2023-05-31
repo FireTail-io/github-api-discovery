@@ -16,24 +16,6 @@ def scan_file(
 ) -> tuple[set[str], dict[str, str]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
-    IGNORED_FILE_PATH_PREFIXES = (
-        ".github",
-        "__test",
-        "test",
-        "tests",
-        ".env",
-        "node_modules/",
-        "example",
-        ".pytest_cache/",
-        ".coverage",
-    )
-    if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
-        return set(), {}
-
-    IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
-    if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
-        return set(), {}
-
     def get_file_contents():
         encoded_content = respect_rate_limit(lambda: file.content, github_client)
         if encoded_content is None:
@@ -58,6 +40,24 @@ def scan_repository_recursive(
 ) -> tuple[set[str], dict[str, str]]:
     frameworks_identified: set[str] = set()
     openapi_specs_discovered: dict[str, str] = {}
+
+    IGNORED_FILE_PATH_PREFIXES = (
+        ".github",
+        "__test",
+        "test",
+        "tests",
+        ".env",
+        "node_modules/",
+        # "example",
+        ".pytest_cache/",
+        ".coverage",
+    )
+    if path.startswith(IGNORED_FILE_PATH_PREFIXES):
+        return set(), {}
+
+    IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
+    if any([ignored_file_path in path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
+        return set(), {}
 
     repository_contents = respect_rate_limit(lambda: repository.get_contents(path), github_client)
     if not isinstance(repository_contents, list):
@@ -110,6 +110,8 @@ def scan_with_token(github_token: str) -> None:
     github_client = github.Github(github_token)
 
     repositories_to_scan = get_repositories_to_scan(github_client)
+
+    # repositories_to_scan = [github_client.get_repo("TheTeaCat/OpenAPI-Specification")]
 
     for repo in repositories_to_scan:
         print(f"ℹ️ {repo.full_name}: Scanning...")
