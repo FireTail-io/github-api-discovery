@@ -1,235 +1,117 @@
-import datetime
-import requests
-import jwt
-import datetime
 import github
-import base64
-import yaml
-import json
-import os
-from prance import ResolvingParser
-from prance.util.resolver import RESOLVE_INTERNAL
-import time
+from github import Github as GithubClient
+from github.ContentFile import ContentFile as GithubContentFile
+from github.Repository import Repository as GithubRepository
 
-GH_TOKEN = os.environ["GITHUB_TOKEN"]
-PYTHON_IMPORTS = ["flask", "fastapi", "scarlette",
-                  "django", "firetail ", "firetail.", "gevent"]
-request_session = requests.session()
-GITHUB_URL = "https://api.github.com/"
+from env import GITHUB_TOKEN
+from openapi.validation import is_openapi_spec
+from static_analysis import ANALYSER_TYPE, get_language_analysers
+from utils import respect_rate_limit
 
 
-class SpecDataValidationError(Exception):
-    pass
+def scan_file(
+    file: GithubContentFile, github_client: GithubClient, language_analysers: list[ANALYSER_TYPE]
+) -> tuple[set[str], dict[str, str]]:
+    file_path = respect_rate_limit(lambda: file.path, github_client)
 
-
-def is_spec_valid(spec_data: dict) -> bool:
-    parser = ResolvingParser(
-        spec_string=json.dumps(spec_data),
-        resolve_types=RESOLVE_INTERNAL,
-        backend="openapi-spec-validator",
-        lazy=True,
+    IGNORED_FILE_PATH_PREFIXES = (
+        ".github",
+        "__test",
+        "test",
+        "tests",
+        ".env",
+        "node_modules/",
+        "example",
+        ".pytest_cache/",
+        ".coverage",
     )
-    try:
-        parser.parse()
-    except Exception:
-        # In the future, maybe we can provide some proper details here.
-        return False
-    return True
+    if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
+        return set(), {}
+
+    IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
+    if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
+        return set(), {}
+
+    file_contents = respect_rate_limit(lambda: file.content, github_client)
+    if file_contents is None:
+        return set(), {}
+
+    openapi_specs_discovered = {}
+    frameworks_identified: set[str] = set()
+
+    if is_openapi_spec(file.path, file_contents):
+        openapi_specs_discovered[file_path] = file_contents
+
+    for language_analyser in language_analysers:
+        frameworks, _ = language_analyser(file_path, file_contents)
+        frameworks_identified.update(frameworks)
+
+    return frameworks_identified, openapi_specs_discovered
 
 
-def resolve_and_validate_spec_data(spec_data: dict) -> dict:
-    if not is_spec_valid(spec_data):
-        raise SpecDataValidationError()
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, str]]:
+    frameworks_identified: set[str] = set()
+    openapi_specs_discovered: dict[str, str] = {}
 
-    return spec_data
+    repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
+    print(f"repository_languages: {repository_languages}")
 
+    language_analysers = get_language_analysers(repository_languages)
+    print(f"Got {len(language_analysers)} language analysers...")
 
-def load_key(key_path):
-    with open(key_path, "r") as key_file:
-        key = key_file.read()
-    return key
+    repository_contents = respect_rate_limit(lambda: repository.get_contents(""), github_client)
+    if not isinstance(repository_contents, list):
+        repository_contents = [repository_contents]
+    print(f"Scanning {len(repository_contents)} files in repo...")
 
-
-def get_auth_token(gh_app_id: str, key_path: str):
-    key = load_key(key_path)
-    now = int(datetime.datetime.now().timestamp())
-    payload = {
-        "iat": now - 60,
-        "exp": now + 60 * 8,  # expire after 8 minutes
-        "iss": gh_app_id,
-    }
-    return jwt.encode(payload=payload, key=key, algorithm="RS256")
-
-
-def get_repositories(token):
-    response = request_session.get(
-        url=f"{GITHUB_URL}user/org",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_meta(token):
-    response = request_session.get(
-        url=f"{GITHUB_URL}user/orgs",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_token_from_install(token, installation_id):
-    response = request_session.post(
-        url=f"{GITHUB_URL}app/installations/{installation_id}/access_tokens",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def installation_repositories(token, installation_id):
-    response = request_session.post(
-        url=f"{GITHUB_URL}installation/repositories",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_repo_languages(token, repo_name):
-    repo_name = repo_name.lower()
-    response = request_session.get(
-        url=f"{GITHUB_URL}repos/{repo_name}/languages",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json",
-        },
-    )
-    return response
-
-
-def get_files_in_repo(github_object, repo_name):
-    try:
-        repo = github_object.get_repo(repo_name)
-    except requests.exceptions.ConnectTimeout:
-        time.sleep(10)
-        repo = github_object.get_repo(repo_name)
-    try:
-        contents = repo.get_contents("")
-    except requests.exceptions.ConnectTimeout:
-        time.sleep(10)
-        contents = repo.get_contents("")
-
-    file_list = []
-    while len(contents) > 0:
-        file_content = contents.pop(0)
-        if file_content.type == "dir":
-            contents.extend(repo.get_contents(file_content.path))
-        else:
-            file_list.append(file_content.path)
-    return file_list
-
-
-def read_file_contents(github_object, repo_name, file_path):
-    repo = github_object.get_repo(repo_name)
-    a = repo.get_contents(file_path)
-    return base64.b64decode(a.content).decode().replace("\\r", "").replace("\\n", "\n")
-
-
-def identify_api_framework(contents):
-    imports_discovered = []
-    for module in PYTHON_IMPORTS:
-        if f"{module}" not in contents:
+    for file in repository_contents:
+        try:
+            new_frameworks_identified, new_openapi_specs_discovered = scan_file(file, github_client, language_analysers)
+        except github.GithubException as exception:
+            print(f"Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
             continue
-        if f"from {module}" in contents:
-            imports_discovered.append(module)
-        if f"import {module}" in contents:
-            if module not in imports_discovered:
-                imports_discovered.append(module)
-    return imports_discovered
+
+        frameworks_identified.update(new_frameworks_identified)
+        openapi_specs_discovered = {**openapi_specs_discovered, **new_openapi_specs_discovered}
+
+    return frameworks_identified, openapi_specs_discovered
 
 
-def list_orgs_for_user(token):
-    repos = []
-    github_object = github.Github(token)
-    for repo in github_object.get_user().get_repos():
+def get_repositories_to_scan(github_client: GithubClient) -> list[GithubRepository]:
+    repositories_to_scan = []
+
+    for repo in github_client.get_user().get_repos():
         if repo.fork:
             continue
+
         if repo.archived:
             continue
-        repos.append(repo.full_name)
-    return repos
+
+        repositories_to_scan.append(repo)
+
+    return repositories_to_scan
 
 
-def process_repo(token: str, repo_name: str):
-    specs_discovered = {}
-    frameworks_identified = []
-    github_object = github.Github(token)
-    languages = get_repo_languages(token, repo_name).json()
-    time.sleep(10)
-    try:
-        files = get_files_in_repo(github_object, repo_name)
-    except github.GithubException:
-        return [], {}
-    for file_path in files:
-        if file_path.startswith((".github", "__test", "test", "tests", ".env", "node_modules/", "example")):
-            continue
-        if file_path.contains(("/test", "")):
-            continue
-        if spec_data := detect_openapi_specs(github_object, repo_name, file_path):
-            specs_discovered[file_path] = spec_data
-        if "Python" in languages and file_path.endswith(".py"):
-            file_contents = read_file_contents(
-                github_object, repo_name, file_path)
-            frameworks_identified += identify_api_framework(file_contents)
-    frameworks_identified = list(dict.fromkeys(frameworks_identified))
-    return frameworks_identified, specs_discovered
+def scan_with_token(github_token: str) -> None:
+    github_client = github.Github(github_token)
 
+    repositories_to_scan = get_repositories_to_scan(github_client)
 
-def detect_openapi_specs(github_object, repo_name, file_path):
-    if file_path.endswith(".json"):
-        file_contents = read_file_contents(github_object, repo_name, file_path)
+    for repo in repositories_to_scan:
+        print(f"Scanning {repo.full_name}...")
+
         try:
-            file_dict = json.loads(file_contents)
-            return resolve_and_validate_spec_data(file_dict)
-        except Exception:
-            # print(str(e))
-            return False
+            frameworks_identified, openapi_specs_discovered = scan_repository(github_client, repo)
 
-    if file_path.endswith((".yaml", ".yml")):
-        file_contents = read_file_contents(github_object, repo_name, file_path)
-        if isinstance(file_contents, str):
-            try:
-                file_dict = yaml.safe_load(file_contents)
-                return resolve_and_validate_spec_data(file_dict)
-            except Exception:
-                # print(str(e))
-                # print(traceback.format_exc())
-                return False
-        return file_contents
+        except github.GithubException as exception:
+            print(f"Failed to scan f{repo.full_name}, exception raised: {exception}")
+            continue
 
-
-def process_all_repos(token):
-    gh_repositories = list_orgs_for_user(token)
-
-    for repo in gh_repositories:
-        api_details = process_repo(token, repo)
-        print(repo, api_details)
+        print(repo.full_name, frameworks_identified, openapi_specs_discovered)
 
 
 def main():
-    pass
+    scan_with_token(GITHUB_TOKEN)
+
+
+main()
