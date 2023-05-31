@@ -108,8 +108,6 @@ def scan_with_token(github_token: str) -> None:
             print(f"❗️ {repo.full_name}: Failed to scan, exception raised: {exception}")
             continue
 
-        print(repo.full_name, frameworks_identified, openapi_specs_discovered)
-
         if len(openapi_specs_discovered) == 0:
             print(f"ℹ️ {repo.full_name}: Scan complete. No APIs discovered.")
             continue
