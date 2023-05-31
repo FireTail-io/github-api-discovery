@@ -1,4 +1,5 @@
 import json
+from typing import Callable
 
 import prance  # type: ignore
 import yaml
@@ -20,16 +21,16 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
     return True
 
 
-def is_openapi_spec(file_path: str, file_contents: str) -> bool:
+def is_openapi_spec(file_path: str, get_file_contents: Callable[[], str]) -> bool:
     if file_path.endswith(".json"):
         try:
-            file_contents = json.loads(file_contents)
+            file_contents = json.loads(get_file_contents())
         except:  # noqa: E722
             return False
 
     elif file_path.endswith((".yaml", ".yml")):
         try:
-            file_contents = yaml.safe_load(file_contents)
+            file_contents = yaml.safe_load(get_file_contents())
         except:  # noqa: E722
             return False
 

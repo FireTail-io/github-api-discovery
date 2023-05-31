@@ -33,49 +33,61 @@ def scan_file(
     if any([ignored_file_path in file_path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
         return set(), {}
 
-    file_contents = respect_rate_limit(lambda: file.content, github_client)
-    if file_contents is None:
-        return set(), {}
+    def get_file_contents():
+        return respect_rate_limit(lambda: file.content, github_client)
 
     openapi_specs_discovered = {}
     frameworks_identified: set[str] = set()
 
-    if is_openapi_spec(file.path, file_contents):
-        openapi_specs_discovered[file_path] = file_contents
+    if is_openapi_spec(file.path, get_file_contents):
+        openapi_specs_discovered[file_path] = get_file_contents()
 
     for language_analyser in language_analysers:
-        frameworks, _ = language_analyser(file_path, file_contents)
+        frameworks, _ = language_analyser(file_path, get_file_contents())
         frameworks_identified.update(frameworks)
 
     return frameworks_identified, openapi_specs_discovered
 
 
-def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, str]]:
+def scan_repository_recursive(
+    path: str, repository: GithubRepository, github_client: GithubClient, language_analysers
+) -> tuple[set[str], dict[str, str]]:
     frameworks_identified: set[str] = set()
     openapi_specs_discovered: dict[str, str] = {}
 
+    repository_contents = respect_rate_limit(lambda: repository.get_contents(path), github_client)
+    if not isinstance(repository_contents, list):
+        repository_contents = [repository_contents]
+    print(f"ℹ️ {repository.full_name}: Scanning {len(repository_contents)} files in /{path}...")
+
+    for file in repository_contents:
+        if file.type == "dir":
+            new_frameworks_identified, new_openapi_specs_discovered = scan_repository_recursive(
+                file.path, repository, github_client, language_analysers
+            )
+        else:
+            try:
+                new_frameworks_identified, new_openapi_specs_discovered = scan_file(
+                    file, github_client, language_analysers
+                )
+            except github.GithubException as exception:
+                print(f"❗️ Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
+                continue
+
+        frameworks_identified.update(new_frameworks_identified)
+        openapi_specs_discovered = {**openapi_specs_discovered, **new_openapi_specs_discovered}
+
+    return frameworks_identified, openapi_specs_discovered
+
+
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, str]]:
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
     print(f"ℹ️ {repository.full_name}: Languages detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
     print(f"ℹ️ {repository.full_name}: Got {len(language_analysers)} language analysers...")
 
-    repository_contents = respect_rate_limit(lambda: repository.get_contents(""), github_client)
-    if not isinstance(repository_contents, list):
-        repository_contents = [repository_contents]
-    print(f"ℹ️ {repository.full_name}: Scanning {len(repository_contents)} files in repo...")
-
-    for file in repository_contents:
-        try:
-            new_frameworks_identified, new_openapi_specs_discovered = scan_file(file, github_client, language_analysers)
-        except github.GithubException as exception:
-            print(f"❗️ Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
-            continue
-
-        frameworks_identified.update(new_frameworks_identified)
-        openapi_specs_discovered = {**openapi_specs_discovered, **new_openapi_specs_discovered}
-
-    return frameworks_identified, openapi_specs_discovered
+    return scan_repository_recursive("", repository, github_client, language_analysers)
 
 
 def get_repositories_to_scan(github_client: GithubClient) -> list[GithubRepository]:
