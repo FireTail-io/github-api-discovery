@@ -1,3 +1,4 @@
 import os
 
+FIRETAIL_APP_TOKEN = os.environ["FIRETAIL_APP_TOKEN"]
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
