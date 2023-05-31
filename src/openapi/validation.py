@@ -4,6 +4,7 @@ from typing import Callable
 import prance  # type: ignore
 import yaml
 from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
+from prance.util.url import ResolutionError
 
 
 def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
@@ -15,7 +16,7 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
     )
     try:
         parser.parse()
-    except prance.ValidationError:
+    except (prance.ValidationError, ResolutionError):
         # In the future, maybe we can provide some proper details here.
         return False
     return True
