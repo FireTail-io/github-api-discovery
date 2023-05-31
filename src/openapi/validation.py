@@ -1,7 +1,8 @@
 import json
+
 import prance  # type: ignore
-from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
 import yaml
+from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
 
 
 def resolve_and_validate_openapi_spec(file_contents: str) -> bool:

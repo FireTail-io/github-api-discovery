@@ -1,4 +1,5 @@
 from typing import Callable
+
 from static_analysis.python.analyse_python import analyse_python
 
 ANALYSER_TYPE = Callable[[str, str], tuple[set[str], dict[str, list[str]]]]

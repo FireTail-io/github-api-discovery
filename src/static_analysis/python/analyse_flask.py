@@ -40,22 +40,23 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
     flask_object_token: str | None = None
     for node in module.body:
         if type(node) == ast.Assign and type(node.value) == ast.Call:
-            if (
-                (
-                    # An ImportFrom, e.g. from flask import Flask or from flask import Flask as F
-                    flask_module_token is None
-                    and type(node.value.func) == ast.Name
-                    and node.value.func.id == flask_class_token
-                )
-                or (
-                    # A regular import, e.g. import flask or import flask as f
-                    flask_module_token is not None
-                    and type(node.value.func) == ast.Attribute
-                    and type(node.value.func.value) == ast.Name
-                    and node.value.func.value.id == flask_module_token
-                    and node.value.func.attr == flask_class_token
-                )
-            ) and (len(node.targets) == 1 and type(node.targets[0]) == ast.Name):
+            # An ImportFrom, e.g. from flask import Flask or from flask import Flask as F
+            is_import_from = (
+                flask_module_token is None
+                and type(node.value.func) == ast.Name
+                and node.value.func.id == flask_class_token
+            )
+
+            # A regular import, e.g. import flask or import flask as f
+            is_regular_import = (
+                flask_module_token is not None
+                and type(node.value.func) == ast.Attribute
+                and type(node.value.func.value) == ast.Name
+                and node.value.func.value.id == flask_module_token
+                and node.value.func.attr == flask_class_token
+            )
+
+            if (is_import_from or is_regular_import) and (len(node.targets) == 1 and type(node.targets[0]) == ast.Name):
                 flask_object_token = node.targets[0].id
                 break
     if flask_object_token is None:
@@ -66,15 +67,18 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
         if type(node) != ast.FunctionDef:
             continue
         for decorator in node.decorator_list:
-            if not (
+            is_flask_decorator = (
                 type(decorator) == ast.Call
                 and type(decorator.func) == ast.Attribute
                 and type(decorator.func.value) == ast.Name
                 and decorator.func.value.id == flask_object_token
+                and decorator.func.attr == "route"
                 and len(decorator.args) == 1
                 and type(decorator.args[0]) == ast.Constant
                 and type(decorator.args[0].value) == str
-            ):
+            )
+
+            if not is_flask_decorator:
                 continue
 
             discovered_route = decorator.args[0].value
