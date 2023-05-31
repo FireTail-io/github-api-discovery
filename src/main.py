@@ -1,10 +1,10 @@
-from typing import Callable
 import github
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
 from github.Repository import Repository as GithubRepository
+import requests
 
-from env import GITHUB_TOKEN
+from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN
 from openapi.validation import is_openapi_spec
 from static_analysis import ANALYSER_TYPE, get_language_analysers
 from utils import respect_rate_limit
@@ -99,6 +99,23 @@ def scan_with_token(github_token: str) -> None:
             continue
 
         print(repo.full_name, frameworks_identified, openapi_specs_discovered)
+
+        if len(openapi_specs_discovered) == 0:
+            print(f"{repo.full_name}: No APIs discovered...")
+            continue
+
+        print(f"{repo.full_name}: Creating API in Firetail SaaS...")
+        requests.post(
+            f"{FIRETAIL_API_URL}/discovery/api-repository",
+            headers={
+                "x-ft-app-key": FIRETAIL_APP_TOKEN,
+                "Content-Type": "application/json",
+            },
+            json={
+                "full_name": repo.full_name,
+                "id": f"github:{repo.id}",
+            },
+        )
 
 
 def main():
