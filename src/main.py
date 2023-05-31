@@ -125,7 +125,7 @@ def scan_with_token(github_token: str) -> None:
             print(f"ℹ️ {repo.full_name}: Scan complete. No APIs discovered.")
             continue
 
-        print(f"ℹ️ {repo.full_name}: Scan complete. Creating API in Firetail SaaS.")
+        print(f"ℹ️ {repo.full_name}: Scan complete. API(s) discovered.")
         create_api_response = requests.post(
             f"{FIRETAIL_API_URL}/discovery/api-repository",
             headers={
