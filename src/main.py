@@ -45,15 +45,15 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     openapi_specs_discovered: dict[str, str] = {}
 
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
-    print(f"repository_languages: {repository_languages}")
+    print(f"{repository.full_name}: Languages detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
-    print(f"Got {len(language_analysers)} language analysers...")
+    print(f"{repository.full_name}: Got {len(language_analysers)} language analysers...")
 
     repository_contents = respect_rate_limit(lambda: repository.get_contents(""), github_client)
     if not isinstance(repository_contents, list):
         repository_contents = [repository_contents]
-    print(f"Scanning {len(repository_contents)} files in repo...")
+    print(f"{repository.full_name}: Scanning {len(repository_contents)} files in repo...")
 
     for file in repository_contents:
         try:
@@ -89,13 +89,13 @@ def scan_with_token(github_token: str) -> None:
     repositories_to_scan = get_repositories_to_scan(github_client)
 
     for repo in repositories_to_scan:
-        print(f"Scanning {repo.full_name}...")
+        print(f"{repo.full_name}: Scanning...")
 
         try:
             frameworks_identified, openapi_specs_discovered = scan_repository(github_client, repo)
 
         except github.GithubException as exception:
-            print(f"Failed to scan f{repo.full_name}, exception raised: {exception}")
+            print(f"{repo.full_name}: Failed to scan, exception raised: {exception}")
             continue
 
         print(repo.full_name, frameworks_identified, openapi_specs_discovered)
