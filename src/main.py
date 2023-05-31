@@ -125,8 +125,8 @@ def scan_with_token(github_token: str) -> None:
             print(f"ℹ️ {repo.full_name}: Scan complete. No APIs discovered.")
             continue
 
-        print(f"✅ {repo.full_name}: Scan complete. Creating API in Firetail SaaS.")
-        requests.post(
+        print(f"ℹ️ {repo.full_name}: Scan complete. Creating API in Firetail SaaS.")
+        create_api_response = requests.post(
             f"{FIRETAIL_API_URL}/discovery/api-repository",
             headers={
                 "x-ft-app-key": FIRETAIL_APP_TOKEN,
@@ -136,6 +136,13 @@ def scan_with_token(github_token: str) -> None:
                 "full_name": repo.full_name,
                 "id": f"github:{repo.id}",
             },
+        )
+        if create_api_response.status_code != 200:
+            print(f"❗️ {repo.full_name}: Failed to create API in SaaS, response: {create_api_response.text}")
+            continue
+
+        print(
+            f"✅ {repo.full_name}: Successfully created/updated API in Firetail SaaS, response: {create_api_response.text}"
         )
 
 
