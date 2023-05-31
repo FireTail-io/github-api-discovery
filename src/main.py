@@ -14,7 +14,17 @@ def scan_file(
 ) -> tuple[set[str], dict[str, str]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
-    IGNORED_FILE_PATH_PREFIXES = (".github", "__test", "test", "tests", ".env", "node_modules/", "example")
+    IGNORED_FILE_PATH_PREFIXES = (
+        ".github",
+        "__test",
+        "test",
+        "tests",
+        ".env",
+        "node_modules/",
+        "example",
+        ".pytest_cache/",
+        ".coverage",
+    )
     if file_path.startswith(IGNORED_FILE_PATH_PREFIXES):
         return set(), {}
 
