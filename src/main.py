@@ -55,21 +55,21 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     openapi_specs_discovered: dict[str, str] = {}
 
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
-    print(f"{repository.full_name}: Languages detected: {', '.join(repository_languages)}")
+    print(f"ℹ️ {repository.full_name}: Languages detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
-    print(f"{repository.full_name}: Got {len(language_analysers)} language analysers...")
+    print(f"ℹ️ {repository.full_name}: Got {len(language_analysers)} language analysers...")
 
     repository_contents = respect_rate_limit(lambda: repository.get_contents(""), github_client)
     if not isinstance(repository_contents, list):
         repository_contents = [repository_contents]
-    print(f"{repository.full_name}: Scanning {len(repository_contents)} files in repo...")
+    print(f"ℹ️ {repository.full_name}: Scanning {len(repository_contents)} files in repo...")
 
     for file in repository_contents:
         try:
             new_frameworks_identified, new_openapi_specs_discovered = scan_file(file, github_client, language_analysers)
         except github.GithubException as exception:
-            print(f"Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
+            print(f"❗️ Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}")
             continue
 
         frameworks_identified.update(new_frameworks_identified)
@@ -99,22 +99,22 @@ def scan_with_token(github_token: str) -> None:
     repositories_to_scan = get_repositories_to_scan(github_client)
 
     for repo in repositories_to_scan:
-        print(f"{repo.full_name}: Scanning...")
+        print(f"ℹ️ {repo.full_name}: Scanning...")
 
         try:
             frameworks_identified, openapi_specs_discovered = scan_repository(github_client, repo)
 
         except github.GithubException as exception:
-            print(f"{repo.full_name}: Failed to scan, exception raised: {exception}")
+            print(f"❗️ {repo.full_name}: Failed to scan, exception raised: {exception}")
             continue
 
         print(repo.full_name, frameworks_identified, openapi_specs_discovered)
 
         if len(openapi_specs_discovered) == 0:
-            print(f"{repo.full_name}: No APIs discovered...")
+            print(f"ℹ️ {repo.full_name}: Scan complete. No APIs discovered.")
             continue
 
-        print(f"{repo.full_name}: Creating API in Firetail SaaS...")
+        print(f"✅ {repo.full_name}: Scan complete. Creating API in Firetail SaaS.")
         requests.post(
             f"{FIRETAIL_API_URL}/discovery/api-repository",
             headers={
