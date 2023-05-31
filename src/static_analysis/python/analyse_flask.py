@@ -72,6 +72,7 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
                 and type(decorator.func) == ast.Attribute
                 and type(decorator.func.value) == ast.Name
                 and decorator.func.value.id == flask_object_token
+                and decorator.func.attr == "route"
                 and len(decorator.args) == 1
                 and type(decorator.args[0]) == ast.Constant
                 and type(decorator.args[0].value) == str
