@@ -1,4 +1,3 @@
-from typing import Callable
 import github
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
