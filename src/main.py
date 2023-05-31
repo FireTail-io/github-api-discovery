@@ -94,9 +94,6 @@ def get_repositories_to_scan(github_client: GithubClient) -> list[GithubReposito
     repositories_to_scan = []
 
     for repo in github_client.get_user().get_repos():
-        if repo.fork:
-            continue
-
         if repo.archived:
             continue
 
