@@ -130,7 +130,10 @@ def scan_with_token(github_token: str) -> None:
             print(f"ℹ️ {repo.full_name}: Scan complete. No APIs discovered.")
             continue
 
-        print(f"ℹ️ {repo.full_name}: Scan complete. API(s) discovered.")
+        print(
+            f"ℹ️ {repo.full_name}: Scan complete. {len(openapi_specs_discovered)} OpenAPI API(s) discovered or"
+            " generated from static analysis."
+        )
         create_api_response = requests.post(
             f"{FIRETAIL_API_URL}/discovery/api-repository",
             headers={
