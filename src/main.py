@@ -114,8 +114,6 @@ def scan_with_token(github_token: str) -> None:
 
     repositories_to_scan = get_repositories_to_scan(github_client)
 
-    # repositories_to_scan = [github_client.get_repo("TheTeaCat/OpenAPI-Specification")]
-
     for repo in repositories_to_scan:
         print(f"ℹ️ {repo.full_name}: Scanning...")
 
