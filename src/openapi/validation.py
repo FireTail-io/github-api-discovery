@@ -18,24 +18,24 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
         parser.parse()
     except (prance.ValidationError, ResolutionError):
         # In the future, maybe we can provide some proper details here.
-        return False
-    return True
+        return None
+    return parser.specification
 
 
-def is_openapi_spec(file_path: str, get_file_contents: Callable[[], str]) -> bool:
+def parse_resolve_and_validate_openapi_spec(file_path: str, get_file_contents: Callable[[], str]) -> dict | None:
     if file_path.endswith(".json"):
         try:
             file_contents = json.loads(get_file_contents())
         except:  # noqa: E722
-            return False
+            return None
 
     elif file_path.endswith((".yaml", ".yml")):
         try:
             file_contents = yaml.safe_load(get_file_contents())
         except:  # noqa: E722
-            return False
+            return None
 
     else:
-        return False
+        return None
 
     return resolve_and_validate_openapi_spec(file_contents)

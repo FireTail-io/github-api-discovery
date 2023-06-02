@@ -6,7 +6,7 @@ from github.Repository import Repository as GithubRepository
 import requests
 
 from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN
-from openapi.validation import is_openapi_spec
+from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import ANALYSER_TYPE, get_language_analysers
 from utils import respect_rate_limit
 
@@ -25,8 +25,10 @@ def scan_file(
     openapi_specs_discovered = {}
     frameworks_identified: set[str] = set()
 
-    if is_openapi_spec(file.path, get_file_contents):
-        openapi_specs_discovered[file_path] = get_file_contents()
+    valid_openapi_spec = parse_resolve_and_validate_openapi_spec(file.path, get_file_contents)
+
+    if valid_openapi_spec is not None:
+        openapi_specs_discovered[file_path] = valid_openapi_spec
 
     for language_analyser in language_analysers:
         frameworks, _ = language_analyser(file_path, get_file_contents())
