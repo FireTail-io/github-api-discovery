@@ -36,7 +36,10 @@ def scan_file(
 
 
 def scan_repository_recursive(
-    path: str, repository: GithubRepository, github_client: GithubClient, language_analysers
+    repository: GithubRepository,
+    github_client: GithubClient,
+    language_analysers,
+    path: str = "",
 ) -> tuple[set[str], dict[str, str]]:
     frameworks_identified: set[str] = set()
     openapi_specs_discovered: dict[str, str] = {}
@@ -67,7 +70,7 @@ def scan_repository_recursive(
     for file in repository_contents:
         if file.type == "dir":
             new_frameworks_identified, new_openapi_specs_discovered = scan_repository_recursive(
-                file.path, repository, github_client, language_analysers
+                repository, github_client, language_analysers, path=file.path
             )
         else:
             try:
@@ -91,7 +94,7 @@ def scan_repository(github_client: GithubClient, repository: GithubRepository) -
     language_analysers = get_language_analysers(repository_languages)
     print(f"ℹ️ {repository.full_name}: Got {len(language_analysers)} language analysers...")
 
-    return scan_repository_recursive("", repository, github_client, language_analysers)
+    return scan_repository_recursive(repository, github_client, language_analysers)
 
 
 def get_repositories_to_scan(github_client: GithubClient) -> list[GithubRepository]:
