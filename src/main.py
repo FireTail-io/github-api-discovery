@@ -150,8 +150,36 @@ def scan_with_token(github_token: str) -> None:
             continue
 
         print(
-            f"✅ {repo.full_name}: Successfully created/updated API in Firetail SaaS, response: {create_api_response.text}"
+            f"✅ {repo.full_name}: Successfully created/updated API in Firetail SaaS, response:"
+            f" {create_api_response.text}"
         )
+
+        api_uuid = create_api_response.json()["api"]["UUID"]
+
+        for source, openapi_spec in openapi_specs_discovered.items():
+            upload_api_spec_response = requests.post(
+                f"{FIRETAIL_API_URL}/discovery/api-repository/{api_uuid}/appspec",
+                headers={
+                    "x-ft-app-key": FIRETAIL_APP_TOKEN,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "source": source,
+                    "appspec": openapi_spec,
+                },
+            )
+
+            if upload_api_spec_response.status_code != 201:
+                print(
+                    f"❗️ {repo.full_name}: Failed to upload OpenAPI spec {source} to SaaS, response:"
+                    f" {upload_api_spec_response.text}"
+                )
+                continue
+
+            print(
+                f"✅ {repo.full_name}: Successfully created/updated {source} API spec in Firetail SaaS, response:"
+                f" {upload_api_spec_response.text}"
+            )
 
 
 def main():
