@@ -3,7 +3,7 @@ import github
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
 from github.Repository import Repository as GithubRepository
-import requests
+import requests  # type: ignore
 
 from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN
 from openapi.validation import parse_resolve_and_validate_openapi_spec
