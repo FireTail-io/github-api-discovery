@@ -68,7 +68,7 @@ def scan_repository_recursive(
     repository_contents = respect_rate_limit(lambda: repository.get_contents(path), github_client)
     if not isinstance(repository_contents, list):
         repository_contents = [repository_contents]
-    logger.info(f"{repository.full_name}: Scanning {len(repository_contents)} files in /{path}...")
+    logger.info(f"{repository.full_name}: Scanning {len(repository_contents)} file(s) in /{path}")
 
     for file in repository_contents:
         if file.type == "dir":
@@ -94,10 +94,10 @@ def scan_repository_recursive(
 
 def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, dict]]:
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
-    logger.info(f"{repository.full_name}: Languages detected: {', '.join(repository_languages)}")
+    logger.info(f"{repository.full_name}: Language(s) detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
-    logger.info(f"{repository.full_name}: Got {len(language_analysers)} language analysers...")
+    logger.info(f"{repository.full_name}: Got {len(language_analysers)} language analyser(s)")
 
     return scan_repository_recursive(repository, github_client, language_analysers)
 
@@ -120,7 +120,7 @@ def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url
     repositories_to_scan = get_repositories_to_scan(github_client)
 
     for repo in repositories_to_scan:
-        logger.info(f"{repo.full_name}: Scanning...")
+        logger.info(f"{repo.full_name}: Scanning {repo.html_url}")
 
         try:
             frameworks_identified, openapi_specs_discovered = scan_repository(github_client, repo)
