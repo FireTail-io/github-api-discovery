@@ -1,22 +1,22 @@
 # API Discovery from Github Repositories
 
-This docker image will discover APIs in your account and try to extract openapi/swagger specifications. It will create the api and discovered collections in FireTails SaaS Platform
-
-Required:
-  - GitHub token
-  - Firetail app token
+This Docker image will discover APIs in your GitHub account by scanning for openapi/swagger specifications in your repositories, as well as generating them via static code analysis. It will create an API per repository, and potentially multiple collections for that API, in the FireTail SaaS Platform.
 
 
 
-## Build
+## Building
 
-```BASH
+You can build the image yourself by cloning the repository and using the following docker command:
+
+```bash
+git clone git@github.com:FireTail-io/github-api-discovery.git
+cd github-api-discovery
 docker build --rm -t firetail-io/github-api-discovery:latest -f build_setup/Dockerfile .
 ```
 
 
 
-## Run
+## Running
 
 Running the image requires two environment variables, `GITHUB_TOKEN` and `FIRETAIL_APP_TOKEN`. You can find a full list of environment variables used by the scanner below.
 
