@@ -54,7 +54,7 @@ def scan_repository_recursive(
         "tests",
         ".env",
         "node_modules/",
-        # "example",
+        "example",
         ".pytest_cache/",
         ".coverage",
     )
