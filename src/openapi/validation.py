@@ -7,7 +7,7 @@ from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
 from prance.util.url import ResolutionError
 
 
-def resolve_and_validate_openapi_spec(file_contents: str) -> bool:
+def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
     parser = prance.ResolvingParser(
         spec_string=json.dumps(file_contents),
         resolve_types=RESOLVE_INTERNAL,
