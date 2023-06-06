@@ -114,7 +114,7 @@ def get_repositories_to_scan(github_client: GithubClient) -> list[GithubReposito
     return repositories_to_scan
 
 
-def scan_with_token(github_token: str) -> None:
+def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url: str) -> None:
     github_client = github.Github(github_token)
 
     repositories_to_scan = get_repositories_to_scan(github_client)
@@ -140,9 +140,9 @@ def scan_with_token(github_token: str) -> None:
             " generated from static analysis."
         )
         create_api_response = requests.post(
-            f"{FIRETAIL_API_URL}/discovery/api-repository",
+            f"{firetail_api_url}/discovery/api-repository",
             headers={
-                "x-ft-app-key": FIRETAIL_APP_TOKEN,
+                "x-ft-app-key": firetail_app_token,
                 "Content-Type": "application/json",
             },
             json={
@@ -163,9 +163,9 @@ def scan_with_token(github_token: str) -> None:
 
         for source, openapi_spec in openapi_specs_discovered.items():
             upload_api_spec_response = requests.post(
-                f"{FIRETAIL_API_URL}/discovery/api-repository/{api_uuid}/appspec",
+                f"{firetail_api_url}/discovery/api-repository/{api_uuid}/appspec",
                 headers={
-                    "x-ft-app-key": FIRETAIL_APP_TOKEN,
+                    "x-ft-app-key": firetail_app_token,
                     "Content-Type": "application/json",
                 },
                 json={
@@ -188,7 +188,17 @@ def scan_with_token(github_token: str) -> None:
 
 
 def main():
-    scan_with_token(GITHUB_TOKEN)
+    required_env_vars = {
+        "GITHUB_TOKEN": GITHUB_TOKEN,
+        "FIRETAIL_APP_TOKEN": FIRETAIL_APP_TOKEN,
+        "FIRETAIL_API_URL": FIRETAIL_API_URL,
+    }
+    for env_var_name, env_var_value in required_env_vars.items():
+        if env_var_value is None:
+            logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
+            return
+
+    scan_with_token(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL)
 
 
 main()
