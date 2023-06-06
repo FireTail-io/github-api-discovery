@@ -4,6 +4,7 @@ This docker image will discover APIs in your account and try to extract openapi/
 
 Required:
   - github token
+  - Firetail app token
 
 # Build
 ```BASH
