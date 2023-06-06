@@ -13,7 +13,7 @@ from utils import respect_rate_limit
 
 def scan_file(
     file: GithubContentFile, github_client: GithubClient, language_analysers: list[ANALYSER_TYPE]
-) -> tuple[set[str], dict[str, str]]:
+) -> tuple[set[str], dict[str, dict]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
     def get_file_contents():
@@ -22,7 +22,7 @@ def scan_file(
             return ""
         return base64.b64decode(encoded_content)
 
-    openapi_specs_discovered = {}
+    openapi_specs_discovered: dict[str, dict] = {}
     frameworks_identified: set[str] = set()
 
     valid_openapi_spec = parse_resolve_and_validate_openapi_spec(file.path, get_file_contents)
@@ -31,8 +31,9 @@ def scan_file(
         openapi_specs_discovered[file_path] = valid_openapi_spec
 
     for language_analyser in language_analysers:
-        frameworks, _ = language_analyser(file_path, get_file_contents())
+        frameworks, openapi_spec_from_analysis = language_analyser(file_path, get_file_contents())
         frameworks_identified.update(frameworks)
+        openapi_specs_discovered = {**openapi_specs_discovered, **openapi_spec_from_analysis}
 
     return frameworks_identified, openapi_specs_discovered
 
@@ -42,9 +43,9 @@ def scan_repository_recursive(
     github_client: GithubClient,
     language_analysers,
     path: str = "",
-) -> tuple[set[str], dict[str, str]]:
+) -> tuple[set[str], dict[str, dict]]:
     frameworks_identified: set[str] = set()
-    openapi_specs_discovered: dict[str, str] = {}
+    openapi_specs_discovered: dict[str, dict] = {}
 
     IGNORED_FILE_PATH_PREFIXES = (
         ".github",
@@ -89,7 +90,7 @@ def scan_repository_recursive(
     return frameworks_identified, openapi_specs_discovered
 
 
-def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, str]]:
+def scan_repository(github_client: GithubClient, repository: GithubRepository) -> tuple[set[str], dict[str, dict]]:
     repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
     print(f"ℹ️ {repository.full_name}: Languages detected: {', '.join(repository_languages)}")
 

@@ -1,7 +1,7 @@
 import ast
 
 
-def get_routes(module: ast.Module) -> dict[str, list[str]]:
+def get_paths(module: ast.Module) -> dict[str, list[str]]:
     discovered_routes: dict[str, list[str]] = {}
 
     # NOTE: If we created a more advanced visitor here we'd need to deal with some scoping headaches, so just scanning
@@ -67,7 +67,7 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
         if type(node) != ast.FunctionDef:
             continue
         for decorator in node.decorator_list:
-            is_flask_decorator = (
+            if not (
                 type(decorator) == ast.Call
                 and type(decorator.func) == ast.Attribute
                 and type(decorator.func.value) == ast.Name
@@ -76,22 +76,47 @@ def get_routes(module: ast.Module) -> dict[str, list[str]]:
                 and len(decorator.args) == 1
                 and type(decorator.args[0]) == ast.Constant
                 and type(decorator.args[0].value) == str
-            )
-
-            if not is_flask_decorator:
+            ):
                 continue
 
             discovered_route = decorator.args[0].value
-            discovered_methods = ["GET"]  # By default, Flask endpoints are GET
+            discovered_methods = ["get"]  # By default, Flask endpoints are GET
 
             for kwarg in decorator.keywords:
                 if kwarg.arg != "methods":
                     continue
                 if type(kwarg.value) != ast.List:
                     continue
-                discovered_methods = [element.value for element in kwarg.value.elts if type(element) == ast.Constant]
+                discovered_methods = [
+                    element.value.lower()
+                    for element in kwarg.value.elts
+                    if type(element) == ast.Constant and type(element.value) == str
+                ]
                 break
 
             discovered_routes[discovered_route] = discovered_methods
 
     return discovered_routes
+
+
+def analyse_flask(module: ast.Module) -> dict | None:
+    """Analyses a flask module and returns an openapi spec generated from static analysis, or None
+
+    Args:
+        module (ast.Module): The Flask module to analyse
+
+    Returns:
+        dict | None: An OpenAPI spec, or None
+    """
+
+    paths = get_paths(module=module)
+
+    # This isn't a valid OpenAPI spec as it's missing a version field under the info object, and at least one response
+    # definition under each of the methods, but it's good enough for now.
+    return {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "Static Analysis - Flask",
+        },
+        "paths": {path: {method: {} for method in methods} for path, methods in paths.items()},
+    }
