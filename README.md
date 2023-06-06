@@ -12,5 +12,5 @@ docker build --rm -t firetail-io/github-api-discovery:latest -f build_setup/Dock
 
 # Run
 ```BASH
-docker run -d --rm -e GH_TOKEN=${GH_TOKEN} firetail-io/github-api-discovery:latest
+docker run --rm -e GH_TOKEN=${GH_TOKEN} firetail-io/github-api-discovery:latest
 ```
