@@ -111,6 +111,10 @@ def analyse_flask(module: ast.Module) -> dict | None:
 
     paths = get_paths(module=module)
 
+    # If there's no paths, there's no point creating an appspec
+    if len(paths) == 0:
+        return None
+
     # This isn't a valid OpenAPI spec as it's missing a version field under the info object, and at least one response
     # definition under each of the methods, but it's good enough for now.
     return {
