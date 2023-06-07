@@ -30,7 +30,7 @@ You can build the image yourself by cloning the repository and using the followi
 ```bash
 git clone git@github.com:FireTail-io/github-api-discovery.git
 cd github-api-discovery
-docker build --rm -t firetail-io/github-api-discovery:latest -f build_setup/Dockerfile .
+docker build --rm -t firetail-io/github-api-discovery:latest -f build_setup/Dockerfile . --target runtime
 ```
 
 
