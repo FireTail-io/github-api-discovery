@@ -4,6 +4,25 @@ This Docker image will discover APIs in your GitHub account by scanning for open
 
 
 
+## Tests
+
+The tests can be run using the provided Dockerfile:
+
+```bash
+docker build --rm -t firetail-io/github-api-discovery:test -f build_setup/Dockerfile . --target test
+docker run firetail-io/github-api-discovery:test
+```
+
+Tests for the Golang analyser can be ran using the standard `go test` command from within the `golang_analyser` directory:
+
+```bash
+cd golang_analyser
+go test -coverprofile=coverage.out ./...
+go tool cover -html coverage.out
+```
+
+
+
 ## Building
 
 You can build the image yourself by cloning the repository and using the following docker command:
