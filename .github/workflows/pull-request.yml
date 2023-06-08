@@ -1,0 +1,42 @@
+name: Pull Request CI
+
+on:
+  - pull_request
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  run-tests-in-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Run Golang tests in Docker
+        run: |
+            DOCKER_BUILDKIT=1 docker build --target test-golang -t test-golang -f build_setup/Dockerfile .
+            docker run --rm --entrypoint cat test-golang coverage.html > golang-coverage.html
+      - uses: actions/upload-artifact@v3
+        with:
+            name: golang-coverage.html
+            path: golang-coverage.html
+
+      - name: Run Python tests in Docker
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.FT_COMMONS_SSH_PRIVATE_KEY }}" | ssh-add -
+          DOCKER_BUILDKIT=1 docker build --target test-python -t test-python --ssh default=${SSH_AUTH_SOCK} -f build_setup/Dockerfile .
+          docker run --rm --entrypoint cat test-python coverage.xml > python-coverage.xml
+      - uses: actions/upload-artifact@v3
+        with:
+          name: python-coverage.xml
+          path: python-coverage.xml
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+          verbose: true
