@@ -13,21 +13,21 @@ type NetHttpVisitor struct {
 }
 
 func (visitor *NetHttpVisitor) Visit(node ast.Node) ast.Visitor {
-	// We're only interested in callExprs, e.g. "http.HandleFunc("/health", health)" or "foo()"
+	// We're only interested in callExprs, e.g. "http.HandleFunc("/health", health)" or "http.Handle("/health", health)"
 	callExpr, ok := node.(*ast.CallExpr)
 	if !ok {
 		return visitor
 	}
 
-	// If it's a CallExpr for a http.HandleFunc() then it'll have exactly two args
+	// If it's a CallExpr for a http.HandleFunc()/http.Handle() then it'll have exactly two args
 	if (len(callExpr.Args) != 2) {
 		return visitor
 	}
 
-	// If it's a CallExpr for a http.HandleFunc() then it'll have a SelectorExpr for http.HandleFunc where the
-	// Selector name is "HandleFunc"
+	// If it's a CallExpr for a http.HandleFunc()/http.Handle() then it'll have a SelectorExpr for
+	// http.HandleFunc/http.Handle where the Selector name is "HandleFunc" or "Handle"
 	functionSelector, ok := callExpr.Fun.(*ast.SelectorExpr)
-	if !ok || functionSelector.Sel.Name != "HandleFunc" {
+	if !ok || (functionSelector.Sel.Name != "HandleFunc" && functionSelector.Sel.Name != "Handle") {
 		return visitor
 	}
 
