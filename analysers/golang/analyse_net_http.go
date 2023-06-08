@@ -13,10 +13,6 @@ type NetHttpVisitor struct {
 }
 
 func (visitor *NetHttpVisitor) Visit(node ast.Node) ast.Visitor {
-	if node == nil {
-		return nil
-	}
-
 	// We're only interested in callExprs, e.g. "http.HandleFunc("/health", health)" or "foo()"
 	callExpr, ok := node.(*ast.CallExpr)
 	if !ok {
