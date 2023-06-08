@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAnalyseGolang(t *testing.T) {
@@ -26,7 +25,7 @@ func main() {
 }`
 
 	imports, openapiSpecs, err := analyse(fileName, fileContents)
-	require.Nil(t, err)
+	assert.Nil(t, err)
 	assert.Equal(t, map[string]string{"net/http": "http"}, imports)
 	assert.Equal(t, map[string]interface{}{
 			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
@@ -35,4 +34,45 @@ func main() {
 			"paths": map[string]struct{}{"/hello": {}},
 		},
 	}, openapiSpecs)
+}
+
+func TestAnalyseGolangNamedImport(t *testing.T) {
+	fileName := "net_http_hello_world.go"
+	fileContents := `package main
+
+import (
+	"fmt"
+	nethttp "net/http"
+)
+
+func hello(w nethttp.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "Hello, world!\n")
+}
+
+func main() {
+	nethttp.HandleFunc("/hello", hello)
+	nethttp.ListenAndServe(":8080", nil)
+}`
+
+	imports, openapiSpecs, err := analyse(fileName, fileContents)
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]string{"net/http": "nethttp"}, imports)
+	assert.Equal(t, map[string]interface{}{
+			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
+			"openapi": "3.0.0",
+			"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]struct{}{"/hello": {}},
+		},
+	}, openapiSpecs)
+}
+
+func TestAnalyseGolangNotGoFile(t *testing.T) {
+	fileName := "net_http_hello_world.go"
+	fileContents := `{"Oh no": "This isn't a .go file, it's just JSON!"}`
+
+	imports, openapiSpecs, err := analyse(fileName, fileContents)
+	assert.NotNil(t, err)
+	assert.Equal(t, "net_http_hello_world.go:1:1: expected 'package', found '{'", err.Error())
+	assert.Equal(t, map[string]string{}, imports)
+	assert.Equal(t, map[string]interface{}{}, openapiSpecs)
 }
