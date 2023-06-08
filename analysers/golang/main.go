@@ -2,7 +2,6 @@ package main
 
 import (
 	"C"
-	"log"
 )
 import (
 	"encoding/json"
@@ -13,9 +12,6 @@ import (
 func AnalyseCGOWrapper(filePathPointer *C.char, fileContentsPointer *C.char) *C.char {
 	filePath := C.GoString(filePathPointer)
 	fileContents := C.GoString(fileContentsPointer)
-
-	log.Println("file_path:", filePath)
-	log.Println("file_contents:", fileContents)
 
 	frameworks_identified, openapi_specs, err := analyse(filePath, fileContents)
 	if err != nil {
