@@ -35,6 +35,8 @@ def analyse_python(file_path: str, file_contents: str) -> tuple[set[str], dict[s
     appspecs: dict = {}
 
     if "flask" in DETECTED_FRAMEWORKS:
-        appspecs[f"static-analysis:flask:{file_path}"] = analyse_flask(parsed_module)
+        flask_appspec = analyse_flask(parsed_module)
+        if flask_appspec is not None:
+            appspecs[f"static-analysis:flask:{file_path}"] = flask_appspec
 
     return DETECTED_FRAMEWORKS, appspecs
