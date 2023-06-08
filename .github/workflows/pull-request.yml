@@ -27,9 +27,7 @@ jobs:
 
       - name: Run Python tests in Docker
         run: |
-          eval $(ssh-agent -s)
-          echo "${{ secrets.FT_COMMONS_SSH_PRIVATE_KEY }}" | ssh-add -
-          DOCKER_BUILDKIT=1 docker build --target test-python -t test-python --ssh default=${SSH_AUTH_SOCK} -f build_setup/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build --target test-python -t test-python -f build_setup/Dockerfile .
           docker run --rm --entrypoint cat test-python coverage.xml > python-coverage.xml
       - uses: actions/upload-artifact@v3
         with:
