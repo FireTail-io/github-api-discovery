@@ -1,4 +1,4 @@
-module golang_analyser
+module analyser
 
 go 1.20
 

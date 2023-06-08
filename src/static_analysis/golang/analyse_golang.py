@@ -3,7 +3,7 @@ import json
 from typing import Callable
 
 
-GOLANG_ANALYSIS_LIBRARY = ctypes.cdll.LoadLibrary("/golang_analyser/main.so")
+GOLANG_ANALYSIS_LIBRARY = ctypes.cdll.LoadLibrary("/analysers/golang/main.so")
 GOLANG_ANALYSER: Callable[[bytes, bytes], bytes] = GOLANG_ANALYSIS_LIBRARY.AnalyseCGOWrapper
 GOLANG_ANALYSER.argtypes = [ctypes.c_char_p, ctypes.c_char_p]  # type: ignore
 GOLANG_ANALYSER.restype = ctypes.c_void_p  # type: ignore

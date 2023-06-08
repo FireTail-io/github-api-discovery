@@ -1,7 +1,7 @@
 FROM golang:1.20.5-bullseye as build-golang
 
 WORKDIR /src
-COPY golang_analyser /src
+COPY analysers/golang /src
 
 RUN go build -buildmode=c-shared -o /dist/main.so .
 
@@ -11,7 +11,7 @@ FROM python:3.11-slim-bullseye as build-python
 WORKDIR /github-api-discovery/src
 RUN apt-get update -y && apt-get upgrade -y
 
-COPY --from=build-golang /dist/main.so /golang_analyser/main.so
+COPY --from=build-golang /dist/main.so /analysers/golang/main.so
 COPY src/ /github-api-discovery/src
 
 COPY build_setup/requirements.txt /build_setup/requirements.txt

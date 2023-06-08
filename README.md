@@ -13,10 +13,10 @@ docker build --rm -t firetail-io/github-api-discovery:test -f build_setup/Docker
 docker run firetail-io/github-api-discovery:test
 ```
 
-Tests for the Golang analyser can be ran using the standard `go test` command from within the `golang_analyser` directory:
+Tests for the Golang analyser can be ran using the standard `go test` command from within the `analysers/golang` directory:
 
 ```bash
-cd golang_analyser
+cd analysers/golang
 go test -coverprofile=coverage.out ./...
 go tool cover -html coverage.out
 ```
