@@ -16,16 +16,16 @@ func TestAnalyseGolang(t *testing.T) {
 		"net/http"
 	)
 
-	func hello(w http.ResponseWriter, req *http.Request) {
+	func hello(w beans.ResponseWriter, req *beans.Request) {
 		fmt.Fprintf(w, "Hello, world!\n")
 	}
 
 	func main() {
-		http.HandleFunc("/hello", hello)
-		http.ListenAndServe(":8080", nil)
+		beans.HandleFunc("/hello", hello)
+		beans.ListenAndServe(":8080", nil)
 	}`
 
 	imports, _, err := analyse(fileName, fileContents)
 	require.Nil(t, err)
-	assert.Equal(t, []string{"net/http"}, imports)
+	assert.Equal(t, map[string]string{"net/http": "http"}, imports)
 }
