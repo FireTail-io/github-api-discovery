@@ -18,11 +18,12 @@ jobs:
       - name: Run Golang tests in Docker
         run: |
             DOCKER_BUILDKIT=1 docker build --target test-golang -t test-golang -f build_setup/Dockerfile .
+            docker run --rm --entrypoint cat test-golang coverage.out > golang-coverage.out
             docker run --rm --entrypoint cat test-golang coverage.html > golang-coverage.html
       - uses: actions/upload-artifact@v3
         with:
-            name: golang-coverage.html
-            path: golang-coverage.html
+            name: golang-coverage
+            path: golang-coverage.*
 
       - name: Run Python tests in Docker
         run: |
@@ -38,7 +39,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          files: ./coverage.xml
+          files: python-coverage.xml,golang-coverage.out
           flags: unittests
           fail_ci_if_error: false
           verbose: true
