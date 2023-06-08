@@ -11,21 +11,28 @@ func TestAnalyseGolang(t *testing.T) {
 	fileName := "net_http_hello_world.go"
 	fileContents := `package main
 
-	import (
-		"fmt"
-		"net/http"
-	)
+import (
+	"fmt"
+	"net/http"
+)
 
-	func hello(w beans.ResponseWriter, req *beans.Request) {
-		fmt.Fprintf(w, "Hello, world!\n")
-	}
+func hello(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "Hello, world!\n")
+}
 
-	func main() {
-		beans.HandleFunc("/hello", hello)
-		beans.ListenAndServe(":8080", nil)
-	}`
+func main() {
+	http.HandleFunc("/hello", hello)
+	http.ListenAndServe(":8080", nil)
+}`
 
-	imports, _, err := analyse(fileName, fileContents)
+	imports, openapiSpecs, err := analyse(fileName, fileContents)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]string{"net/http": "http"}, imports)
+	assert.Equal(t, map[string]interface{}{
+			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
+			"openapi": "3.0.0",
+			"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]struct{}{"/hello": {}},
+		},
+	}, openapiSpecs)
 }
