@@ -3,7 +3,6 @@ package main
 import (
 	"go/parser"
 	"go/token"
-	"log"
 	"strings"
 )
 
@@ -25,7 +24,7 @@ func filterImportsToSupportedFrameworks(imports map[string]string) map[string]st
 
 func analyse(filePath string, fileContents string) (map[string]string, map[string]interface{}, error) {
 	fileSet := token.NewFileSet()
-	abstractSyntaxTree, err := parser.ParseFile(fileSet, filePath, fileContents, parser.ImportsOnly)
+	parsedFile, err := parser.ParseFile(fileSet, filePath, fileContents, parser.SkipObjectResolution)
 	if err != nil {
 		return map[string]string{}, map[string]interface{}{}, err
 	}
@@ -34,8 +33,7 @@ func analyse(filePath string, fileContents string) (map[string]string, map[strin
 	// import foo "net/http" -> {"net/http": "foo"}
 	// import "net/http" -> {"net/http" -> "http"}
 	imports := map[string]string{}
-	for _, parsedImport := range abstractSyntaxTree.Imports {
-		log.Println(parsedImport.Comment, parsedImport.Doc, parsedImport.Name, parsedImport.Path)
+	for _, parsedImport := range parsedFile.Imports {
 		// parsedImport.Path.Value includes quotes on either end (e.g. "net/http"); these indexes strip them.
 		importPath := parsedImport.Path.Value[1:len(parsedImport.Path.Value)-1]
 		if parsedImport.Name != nil {
@@ -47,8 +45,26 @@ func analyse(filePath string, fileContents string) (map[string]string, map[strin
 	}
 
 	importedSupportedFrameworks := filterImportsToSupportedFrameworks(imports)
+	openapiSpecs := map[string]interface{}{}
 
-	// TODO: perform analysis based on the detected frameworks to find routes & methods
+	// Static analysis for files importing net/http
+	if packageIdentifier, ok := importedSupportedFrameworks["net/http"]; ok {
+		netHttpPathsSlice := analyseNetHTTP(parsedFile, packageIdentifier)
 
-	return importedSupportedFrameworks, map[string]interface{}{}, nil
+		netHttpPathsMap := map[string]struct{}{}
+		for _, path := range netHttpPathsSlice {
+			netHttpPathsMap[path] = struct{}{}
+		}
+
+		// Only make an appspec if there's at least one path detected
+		if len(netHttpPathsMap) > 0 {
+			openapiSpecs["static-analysis:net/http:" + filePath] = map[string]interface{}{
+				"openapi": "3.0.0",
+				"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
+				"paths": netHttpPathsMap,
+			}
+		}
+	}
+
+	return importedSupportedFrameworks, openapiSpecs, nil
 }
