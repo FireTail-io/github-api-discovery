@@ -31,7 +31,10 @@ func (visitor *NetHttpVisitor) Visit(node ast.Node) ast.Visitor {
 		return visitor
 	}
 
-	// functionSelector.X should be an Ident with a string value matching the ident of the net/http package
+	// functionSelector.X should be an Ident with a string value matching the ident of the net/http package. We could
+	// inspect this further to check it's actually the net/http package (see packageIdent.Obj) but this should be fine
+	// for now; I can't think of any reason someone would create an instance of a struct matching the package identifier
+	// for net/http that has a Handle() or HandleFunc() method with exactly the same args as in the net/http package.
 	if packageIdent, ok := functionSelector.X.(*ast.Ident); !ok || packageIdent.String() != visitor.packageIdentifier {
 		return visitor
 	}
