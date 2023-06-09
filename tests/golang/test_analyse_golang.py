@@ -17,3 +17,13 @@ def test_analyse_net_http_hello_world():
             },
         }
     }
+
+
+def test_analyse_malformed_go_file():
+    file_path = "tests/golang/example_apps/malformed.go"
+    file_contents = '{"Oh no": "This is\'nt golang, i\'s JSON!"}'
+
+    detected_frameworks, appspecs = analyse_golang(file_path, file_contents)
+
+    assert detected_frameworks == set()
+    assert appspecs == {}
