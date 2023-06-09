@@ -1,6 +1,7 @@
 package main
 
 import (
+	"analyser/frameworks"
 	"go/parser"
 	"go/token"
 	"strings"
@@ -49,7 +50,7 @@ func analyse(filePath string, fileContents string) (map[string]string, map[strin
 
 	// Static analysis for files importing net/http
 	if packageIdentifier, ok := importedSupportedFrameworks["net/http"]; ok {
-		netHttpPathsSlice := analyseNetHTTP(parsedFile, packageIdentifier)
+		netHttpPathsSlice := frameworks.NetHTTP(parsedFile, packageIdentifier)
 
 		netHttpPathsMap := map[string]struct{}{}
 		for _, path := range netHttpPathsSlice {

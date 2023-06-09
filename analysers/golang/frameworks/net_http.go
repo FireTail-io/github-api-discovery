@@ -1,4 +1,4 @@
-package main
+package frameworks
 
 import (
 	"go/ast"
@@ -56,7 +56,7 @@ func (visitor *NetHttpVisitor) Visit(node ast.Node) ast.Visitor {
 	return visitor
 }
 
-func analyseNetHTTP(file *ast.File, packageIdentifier string) []string {
+func NetHTTP(file *ast.File, packageIdentifier string) []string {
 	visitor := &NetHttpVisitor{
 		paths: []string{},
 		packageIdentifier: packageIdentifier,

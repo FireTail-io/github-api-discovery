@@ -1,4 +1,4 @@
-package main
+package frameworks
 
 import (
 	"go/parser"
@@ -40,7 +40,7 @@ func main() {
 	parsedFile, err := parser.ParseFile(fileSet, fileName, fileContents, parser.SkipObjectResolution)
 	require.Nil(t, err)
 
-	paths := analyseNetHTTP(parsedFile, "http")
+	paths := NetHTTP(parsedFile, "http")
 	assert.Equal(t, []string{"/count"}, paths)
 }
 
@@ -65,7 +65,7 @@ func main() {
 	parsedFile, err := parser.ParseFile(fileSet, fileName, fileContents, parser.SkipObjectResolution)
 	require.Nil(t, err)
 
-	paths := analyseNetHTTP(parsedFile, "http")
+	paths := NetHTTP(parsedFile, "http")
 	assert.Equal(t, []string{"/hello"}, paths)
 }
 
@@ -91,7 +91,7 @@ func main() {
 	parsedFile, err := parser.ParseFile(fileSet, fileName, fileContents, parser.SkipObjectResolution)
 	require.Nil(t, err)
 
-	paths := analyseNetHTTP(parsedFile, "http")
+	paths := NetHTTP(parsedFile, "http")
 	assert.Equal(t, []string{}, paths)
 }
 
@@ -116,7 +116,7 @@ func main() {
 	parsedFile, err := parser.ParseFile(fileSet, fileName, fileContents, parser.SkipObjectResolution)
 	require.Nil(t, err)
 
-	paths := analyseNetHTTP(parsedFile, "http")
+	paths := NetHTTP(parsedFile, "http")
 	assert.Equal(t, []string{}, paths)
 }
 
@@ -141,6 +141,6 @@ func main() {
 	parsedFile, err := parser.ParseFile(fileSet, fileName, fileContents, parser.SkipObjectResolution)
 	require.Nil(t, err)
 
-	paths := analyseNetHTTP(parsedFile, "http")
+	paths := NetHTTP(parsedFile, "http")
 	assert.Equal(t, []string{}, paths)
 }
