@@ -1,10 +1,11 @@
 from typing import Callable
 
+from static_analysis.golang.analyse_golang import analyse_golang
 from static_analysis.python.analyse_python import analyse_python
 
 ANALYSER_TYPE = Callable[[str, str], tuple[set[str], dict[str, dict[str, dict]]]]
 
-LANGUAGE_ANALYSERS: dict[str, list[ANALYSER_TYPE]] = {"Python": [analyse_python]}
+LANGUAGE_ANALYSERS: dict[str, list[ANALYSER_TYPE]] = {"Python": [analyse_python], "Golang": [analyse_golang]}
 
 
 def get_language_analysers(languages: list[str]) -> list[ANALYSER_TYPE]:

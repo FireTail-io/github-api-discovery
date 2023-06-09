@@ -43,23 +43,34 @@ def hello_world():
 def test_analyse_flask_hello_world(test_file_contents):
     file_path = "tests/python/example_apps/flask_hello_world.py"
 
-    frameworks_detected = analyse_python(file_path, test_file_contents)
+    detected_frameworks, appspecs = analyse_python(file_path, test_file_contents)
 
-    assert frameworks_detected == ({"flask"}, {"/": ["GET"]})
+    assert detected_frameworks == {"flask"}
+    assert appspecs == {
+        "static-analysis:flask:tests/python/example_apps/flask_hello_world.py": {
+            "openapi": "3.0.0",
+            "info": {"title": "Static Analysis - Flask"},
+            "paths": {"/": {"get": {}}},
+        }
+    }
 
 
 def test_analyse_flask_notes_app():
     file_path = "tests/python/example_apps/flask_notes_app.py"
     file_contents = open(file_path, "r").read()
 
-    frameworks_detected = analyse_python(file_path, file_contents)
+    detected_frameworks, appspecs = analyse_python(file_path, file_contents)
 
-    assert frameworks_detected == (
-        {"flask"},
-        {
-            "/": ["GET"],
-            "/new": ["GET", "POST"],
-            "/edit/<int:note_id>": ["GET", "POST"],
-            "/delete/<int:note_id>": ["POST"],
-        },
-    )
+    assert detected_frameworks == {"flask"}
+    assert appspecs == {
+        "static-analysis:flask:tests/python/example_apps/flask_notes_app.py": {
+            "openapi": "3.0.0",
+            "info": {"title": "Static Analysis - Flask"},
+            "paths": {
+                "/": {"get": {}},
+                "/new": {"get": {}, "post": {}},
+                "/edit/<int:note_id>": {"get": {}, "post": {}},
+                "/delete/<int:note_id>": {"post": {}},
+            },
+        }
+    }

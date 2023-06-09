@@ -174,7 +174,7 @@ def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url
                 },
             )
 
-            if upload_api_spec_response.status_code != 201:
+            if upload_api_spec_response.status_code not in [201, 304]:
                 logger.critical(
                     f"{repo.full_name}: Failed to upload OpenAPI spec {source} to SaaS, response:"
                     f" {upload_api_spec_response.text}"
