@@ -11,16 +11,16 @@ FROM python:3.11-slim-bullseye as build-python
 WORKDIR /github-api-discovery/src
 RUN apt-get update -y && apt-get upgrade -y
 COPY --from=build-golang /dist/main.so /analysers/golang/main.so
-COPY src/ /github-api-discovery/src
 COPY build_setup/requirements.txt /build_setup/requirements.txt
 RUN python3 -m pip install -r /build_setup/requirements.txt
+COPY src/ /github-api-discovery/src
 RUN rm -rf /build_setup
 
 FROM build-python as test-python
 WORKDIR /github-api-discovery
-COPY tests/ /github-api-discovery/tests/
 COPY setup.cfg /github-api-discovery/setup.cfg
 RUN python3 -m pip install pytest pytest-cov
+COPY tests/ /github-api-discovery/tests/
 RUN pytest --cov /github-api-discovery --cov-report=xml:coverage.xml
 
 FROM build-python as runtime
