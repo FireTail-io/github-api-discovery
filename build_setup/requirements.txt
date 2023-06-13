@@ -2,3 +2,4 @@ PyGithub
 openapi-spec-validator
 pyyaml
 prance
+tree_sitter
