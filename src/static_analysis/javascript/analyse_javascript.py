@@ -40,7 +40,7 @@ def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
             if cursor.goto_next_sibling():
                 # If there is a next sibling (e.g. C) then break so we can traverse its children depth first
                 break
-            # If there isn't a next sibling, then in the next loop we'll try the next parent (e.g. at C)
+            # If there isn't a next sibling, then in the next loop we'll try the next parent (e.g. at C or A)
 
 
 def get_express_identifiers(import_statement: Node) -> set[str]:
