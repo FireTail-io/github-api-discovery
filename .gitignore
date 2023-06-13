@@ -5,3 +5,4 @@ __pycache__
 *.so
 *.h
 coverage.out
+.venv
