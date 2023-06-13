@@ -50,8 +50,11 @@ def get_express_identifiers(import_statement: Node) -> set[str]:
         return list(filter(lambda child: child.type == type, node.children))
 
     # Find any import clauses, e.g:
-    # `import express from "express";` -> 'express'
-    # `import * as foo from "express";` -> '* as foo'
+    # `import express from "express";` -> `express`
+    # `import * as foo from "express";` -> `* as foo`
+    # `import { default as foo } from "express";` -> `{ default as foo }`
+    # `import express, * as foo from "express";` -> `express, * as foo`
+    # `import express, { default as foo } from "express";` -> `express, { default as foo }`
     # If there are no import clauses then we just have `import "express";`, in which case we know there won't be an
     # identifier for the express() func. There should be only one import clause, so if there's more we can also just
     # return an empty set
