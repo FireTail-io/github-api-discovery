@@ -77,7 +77,7 @@ def get_express_identifiers(import_statement: Node) -> set[str]:
             express_identifiers.add("express")
             break
 
-    # Check for any namespace imports, e.g.:
+    # Check for a namespace import as a direct child of the import clause, e.g.:
     # - `import * as foo from "express";`
     # - `import express, * as foo from "express";`
     namespace_imports = get_children_of_type(import_clause, "namespace_import")
@@ -95,12 +95,13 @@ def get_express_identifiers(import_statement: Node) -> set[str]:
     named_imports = get_children_of_type(import_clause, "named_imports")
     if len(named_imports) == 1:
         import_specifiers = get_children_of_type(named_imports[0], "import_specifier")
+        # Search for a `default as foo` import specifier inside the named import
         for import_specifier in import_specifiers:
             import_identifiers = get_children_of_type(import_specifier, "identifier")
-            # For the import 'import { default as foo } from "express";',
-            # named_imports = '{ default as foo }',
-            # import_specifier = 'default as foo',
-            # import_identifiers = ['default', 'foo']
+            # For the import `import { default as foo } from "express";`:
+            # - named_imports = `{ default as foo }`
+            # - import_specifier = `default as foo`
+            # - import_identifiers = ['default', 'foo']
             if (
                 len(import_identifiers) == 2
                 and import_identifiers[0].text is not None
