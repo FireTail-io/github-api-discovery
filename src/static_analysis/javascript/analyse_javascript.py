@@ -81,9 +81,9 @@ def get_express_identifiers(import_statement: Node) -> set[str]:
     # - `import * as foo from "express";`
     # - `import express, * as foo from "express";`
     namespace_imports = get_children_of_type(import_clause, "namespace_import")
-    for namespace_import in namespace_imports:
-        is_importing_all = any(map(lambda node: node.type == "*", namespace_import.children))
-        identifiers = get_children_of_type(namespace_import, "identifier")
+    if len(namespace_imports) == 1:
+        is_importing_all = any(map(lambda node: node.type == "*", namespace_imports[0].children))
+        identifiers = get_children_of_type(namespace_imports[0], "identifier")
         if is_importing_all and len(identifiers) == 1:
             express_identifiers.add(f"{identifiers[0].text.decode('utf-8')}.default")
 
