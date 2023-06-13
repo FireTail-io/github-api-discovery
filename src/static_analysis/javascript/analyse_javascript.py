@@ -8,7 +8,8 @@ JS_PARSER.set_language(JS_LANGUAGE)
 
 
 def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
-    """Traverses a tree_sitter Tree depth first using the cursor from its `.walk()` method
+    """Traverses a tree_sitter Tree depth first using the cursor from its `.walk()` method. You might be asking
+    yourself, "surely tree-sitter has a utility function for this already?". I have asked myself the same question.
 
     Args:
         tree (Tree): The tree to traverse
@@ -20,29 +21,26 @@ def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
     while True:
         # Yield the node the cursor is currently on
         yield cursor.node
-        print(cursor.node.type, cursor.node.text)
 
-        #    A    | goto_first_child and goto_next_sibling return True if they successfully move the cursor to the first
-        #   / \   | child or next sibling. In the tree illustrated left, these actions represent moving from nodes A to
-        #  B   C  | B (to first child), or B to C (to next sibling). If either of these actions succeed, we continue to
-        # --------| yield the node we moved to.
+        #     A   |
+        #    / \  | Try to traverse to the node's first child (depth first, e.g. A->B or B->D).
+        #   B   C | Or, if there's no children to move to, go to the next sibling (e.g. B->C or D->E).
+        #  / \    | Abusing lazy evaulation here.
+        # D   E   |
         if cursor.goto_first_child() or cursor.goto_next_sibling():
             continue
 
-        #      A   | If we couldn't move to a first child or next sibling, then in the illustration left, assuming node
-        #     / \  | D is traversed before node E, we could be at nodes E, C or A. If we're at E goto_first_child will
-        #    B   C | have returned False as E has no children, and goto_next_sibling will have returned False as we've
-        #   / \    | already visited D. In the following loop goto_parent will return True and place the cursor at B,
-        #  D   E   | then goto_next_sibling will move the cursor to C and the loop will be broken. C will be yielded,
-        # ---------| successfully moving us to the second subtree of A. At C goto_first_child and goto_next_sibling
-        # will both return False, bringing us to the following loop again where goto_parent will return True and move
-        # the cursor to A, where goto_next_sibling will return False as A has no siblings, then finally goto_parent will
-        # return False as A has no parent and the function will return.
+        # If there's no children or next sibling, it's time to backtrack (e.g at E or C)
         while True:
+            # Step back to the node's parent (e.g. E->B or C->A)...
             if not cursor.goto_parent():
+                # If there's no parent we've reached the root (A), so return
                 return
+            # ...then try to go to the next sibling (e.g. B->C)
             if cursor.goto_next_sibling():
+                # If there is a next sibling (e.g. C) then break so we can traverse its children depth first
                 break
+            # If there isn't a next sibling, then in the next loop we'll try the next parent (e.g. at C)
 
 
 def get_express_identifiers(import_statement: Node) -> set[str]:
