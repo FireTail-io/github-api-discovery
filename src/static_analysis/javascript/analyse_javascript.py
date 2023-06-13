@@ -1,4 +1,3 @@
-import json
 from typing import Generator
 from tree_sitter import Language, Parser, Tree, Node
 
