@@ -7,6 +7,8 @@ def get_express_identifiers(tree: Tree) -> set[str]:
     def get_children_of_type(node: Node, type: str) -> list[Node]:
         return list(filter(lambda child: child.type == type, node.children))
 
+    express_identifiers = set()
+
     for node in traverse_tree_depth_first(tree):
         if node.type != "import_statement":
             continue
@@ -24,7 +26,6 @@ def get_express_identifiers(tree: Tree) -> set[str]:
         if len(import_clauses) == 0 or len(import_clauses) != 1:
             return set()
         import_clause = import_clauses[0]
-        express_identifiers = set()
 
         # Check for an 'express' identifier as direct child of the import clause, e.g.:
         # - `import express from "express";`
