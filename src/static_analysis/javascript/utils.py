@@ -6,6 +6,26 @@ def get_children_of_type(node: Node, type: str) -> list[Node]:
     return list(filter(lambda child: child.type == type, node.children))
 
 
+def get_module_name_from_import_statement(import_statement: Node) -> str | None:
+    # All import statements should have exactly one string child containing name of the module being
+    # imported, e.g. the string node '"express"' should be a child of 'import express from "express";'
+    string_children = get_children_of_type(import_statement, "string")
+    if len(string_children) != 1:
+        return None
+
+    # String nodes consist of string fragments. We are looking for exactly one string fragment containing
+    # the package name
+    string_fragments = get_children_of_type(string_children[0], "string_fragment")
+    if len(string_fragments) != 1:
+        return None
+
+    # The text field of a Node can be None, check for this. It should be bytes.
+    if string_fragments[0].text is None or type(string_fragments[0].text) != bytes:
+        return None
+
+    return string_fragments[0].text.decode("utf-8")
+
+
 def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
     """Traverses a tree_sitter Tree depth first using the cursor from its `.walk()` method. You might be asking
     yourself, "surely tree-sitter has a utility function for this already?". I have asked myself the same question.

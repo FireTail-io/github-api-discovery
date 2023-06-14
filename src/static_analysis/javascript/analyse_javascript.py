@@ -1,7 +1,7 @@
 from tree_sitter import Language, Parser, Tree
 from static_analysis.javascript.analyse_express import analyse_express
 
-from static_analysis.javascript.utils import get_children_of_type, traverse_tree_depth_first
+from static_analysis.javascript.utils import get_children_of_type, get_module_name_from_import_statement, traverse_tree_depth_first
 
 JS_LANGUAGE = Language('/analysers/tree-sitter/languages.so', 'javascript')
 
@@ -15,23 +15,9 @@ def get_imports(tree: Tree) -> set[str]:
     for node in traverse_tree_depth_first(tree):
         match node.type:
             case "import_statement":  # e.g. 'import express from "express";'
-                # All import statements should have exactly one string child containing name of the module being
-                # imported, e.g. the string node '"express"' should be a child of 'import express from "express";'
-                string_children = get_children_of_type(node, "string")
-                if len(string_children) != 1:
-                    continue
-
-                # String nodes consist of string fragments. We are looking for exactly one string fragment containing
-                # the package name
-                string_fragments = get_children_of_type(string_children[0], "string_fragment")
-                if len(string_fragments) != 1:
-                    continue
-
-                # The text field of a Node can be None, check for this. It should be bytes.
-                if string_fragments[0].text is None or type(string_fragments[0].text) != bytes:
-                    continue
-
-                imports.add(string_fragments[0].text.decode("utf-8"))
+                module_name = get_module_name_from_import_statement(node)
+                if module_name is not None:
+                    imports.add(module_name)
 
             case "variable_declarator":  # e.g 'express = require("express")'
                 # We're looking for a single call expression, e.g 'require("express")'
