@@ -2,6 +2,10 @@ from typing import Generator
 from tree_sitter import Tree, Node
 
 
+def get_children_of_type(node: Node, type: str) -> list[Node]:
+    return list(filter(lambda child: child.type == type, node.children))
+
+
 def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
     """Traverses a tree_sitter Tree depth first using the cursor from its `.walk()` method. You might be asking
     yourself, "surely tree-sitter has a utility function for this already?". I have asked myself the same question.
