@@ -1,12 +1,9 @@
 from tree_sitter import Tree, Node
 
-from static_analysis.javascript.utils import traverse_tree_depth_first
+from static_analysis.javascript.utils import get_children_of_type, traverse_tree_depth_first
 
 
 def get_express_identifiers(tree: Tree) -> set[str]:
-    def get_children_of_type(node: Node, type: str) -> list[Node]:
-        return list(filter(lambda child: child.type == type, node.children))
-
     express_identifiers = set()
 
     for node in traverse_tree_depth_first(tree):
