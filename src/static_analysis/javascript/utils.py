@@ -71,6 +71,81 @@ def get_module_name_from_require_args(call_expression_arguments: Node) -> str | 
     return string_fragments[0].text.decode("utf-8")
 
 
+def get_identifier_from_variable_declarator(variable_declarator: Node) -> str | None:
+    # Get the identifier the variable declarator is assigning to; there should be exactly one
+    identifiers = get_children_of_type(variable_declarator, "identifier")
+    if (
+        len(identifiers) == 1
+        and type(identifiers[0].text) == bytes
+    ):
+        return identifiers[0].text.decode("utf-8")
+    return None
+
+
+def get_default_identifiers_from_import_statement(import_statement: Node) -> set[str]:
+    default_identifiers = set()
+
+    # Find any import clauses, e.g:
+    # `import express from "express";` -> `express`
+    # `import * as foo from "express";` -> `* as foo`
+    # `import { default as foo } from "express";` -> `{ default as foo }`
+    # `import express, * as foo from "express";` -> `express, * as foo`
+    # `import express, { default as foo } from "express";` -> `express, { default as foo }`
+    # If there are no import clauses then we just have `import "express";`, in which case we know there
+    # won't be an identifier for the express() func. There should be only one import clause, so if there's
+    # more then something's gone awry and we can also just return an empty set
+    import_clauses = get_children_of_type(import_statement, "import_clause")
+    if len(import_clauses) == 0 or len(import_clauses) != 1:
+        return set()
+    import_clause = import_clauses[0]
+
+    # Check for an identifier as direct child of the import clause, e.g.:
+    # - `import express from "express";`
+    # - `import express, * as foo from "express";`
+    # - `import express, { default as foo } from "express";`
+    # - `import express, { Request, Response, default as bar } from "express";`
+    import_identifiers = get_children_of_type(import_clause, "identifier")
+    for import_identifier in import_identifiers:
+        if type(import_identifier.text) != bytes:
+            continue
+        default_identifiers.add(import_identifier.text.decode("utf-8"))
+
+    # Check for a namespace import as a direct child of the import clause, e.g.:
+    # - `import * as foo from "express";`
+    # - `import express, * as foo from "express";`
+    namespace_imports = get_children_of_type(import_clause, "namespace_import")
+    if len(namespace_imports) == 1:
+        is_importing_all = any(map(lambda node: node.type == "*", namespace_imports[0].children))
+        identifiers = get_children_of_type(namespace_imports[0], "identifier")
+        if is_importing_all and len(identifiers) == 1:
+            default_identifiers.add(f"{identifiers[0].text.decode('utf-8')}.default")
+
+    # Check for a named import as a direct child of the import clause, e.g.:
+    # - `import { default as foo } from "express";`
+    # - `import { Request, Response, default as foo } from "express";`
+    # - `import express, { default as foo } from "express";`
+    # - `import express, { Request, Response, default as foo } from "express";`
+    named_imports = get_children_of_type(import_clause, "named_imports")
+    if len(named_imports) == 1:
+        import_specifiers = get_children_of_type(named_imports[0], "import_specifier")
+        # Search for a `default as foo` import specifier inside the named import
+        for import_specifier in import_specifiers:
+            import_identifiers = get_children_of_type(import_specifier, "identifier")
+            # For the import `import { default as foo } from "express";`:
+            # - named_imports = `{ default as foo }`
+            # - import_specifier = `default as foo`
+            # - import_identifiers = ['default', 'foo']
+            if (
+                len(import_identifiers) == 2
+                and type(import_identifiers[0].text) == bytes
+                and type(import_identifiers[1].text) == bytes
+                and import_identifiers[0].text.decode("utf-8") == "default"
+            ):
+                default_identifiers.add(import_identifiers[1].text.decode("utf-8"))
+
+    return default_identifiers
+
+
 def traverse_tree_depth_first(tree: Tree) -> Generator[Node, None, None]:
     """Traverses a tree_sitter Tree depth first using the cursor from its `.walk()` method. You might be asking
     yourself, "surely tree-sitter has a utility function for this already?". I have asked myself the same question.
