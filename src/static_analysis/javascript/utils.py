@@ -26,18 +26,20 @@ def get_module_name_from_import_statement(import_statement: Node) -> str | None:
     return string_fragments[0].text.decode("utf-8")
 
 
-def is_variable_declarator_calling_require(variable_declarator: Node) -> tuple[bool, Node | None]:
+def is_variable_declarator_or_assignment_expression_calling_func(
+    variable_declarator: Node, func_identifier: str
+) -> tuple[bool, Node | None]:
     # We're looking for a single call expression, e.g 'require("express")'
     call_expressions = get_children_of_type(variable_declarator, "call_expression")
     if len(call_expressions) != 1:
-        return False
+        return False, None
 
-    # The call expression should have a single identifier child whose text is 'require'
+    # The call expression should have a single identifier child whose text is equal to the provided func_identifier
     call_expression_identifiers = get_children_of_type(call_expressions[0], "identifier")
     if (
         len(call_expression_identifiers) != 1
         or type(call_expression_identifiers[0].text) != bytes
-        or call_expression_identifiers[0].text.decode("utf-8") != "require"
+        or call_expression_identifiers[0].text.decode("utf-8") != func_identifier
     ):
         return False, None
 
@@ -46,14 +48,14 @@ def is_variable_declarator_calling_require(variable_declarator: Node) -> tuple[b
     if len(call_expression_arguments) != 1:
         return False, None
 
-    # The call expression arguments node should have three childen, '(', '"express"' and ')'
-    if call_expression_arguments[0].child_count != 3:
-        return False, None
-
     return True, call_expression_arguments[0]
 
 
 def get_module_name_from_require_args(call_expression_arguments: Node) -> str | None:
+    # The call expression arguments node should have exactly three childen, '(', '"express"' and ')'
+    if call_expression_arguments.child_count != 3:
+        return False, None
+
     # The call expression arguments node should have a single string child, the name of the required module
     string_arguments = get_children_of_type(call_expression_arguments, "string")
     if len(string_arguments) != 1:

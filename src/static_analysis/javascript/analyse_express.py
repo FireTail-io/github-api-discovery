@@ -2,8 +2,8 @@ from tree_sitter import Tree
 
 from static_analysis.javascript.utils import (
     get_default_identifiers_from_import_statement, get_identifier_from_variable_declarator,
-    get_module_name_from_import_statement, get_module_name_from_require_args, is_variable_declarator_calling_require,
-    traverse_tree_depth_first
+    get_module_name_from_import_statement, get_module_name_from_require_args,
+    is_variable_declarator_or_assignment_expression_calling_func, traverse_tree_depth_first
 )
 
 
@@ -21,7 +21,9 @@ def get_express_identifiers(tree: Tree) -> set[str]:
 
             case "variable_declarator":
                 # For example, 'const express = require("express");'
-                is_calling_require, require_args = is_variable_declarator_calling_require(node)
+                is_calling_require, require_args = is_variable_declarator_or_assignment_expression_calling_func(
+                    node, "require"
+                )
                 if not is_calling_require:
                     continue
                 if get_module_name_from_require_args(require_args) != "express":
@@ -34,8 +36,24 @@ def get_express_identifiers(tree: Tree) -> set[str]:
 
 
 def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
-    # TODO: find app identifiers
-    return set()
+    app_identifiers = set()
+
+    for node in traverse_tree_depth_first(tree):
+        match node.type:
+            case "variable_declarator" | "assignment_expression":
+                # e.g. 'const app = express();'
+                is_calling_express = any([
+                    # we don't care about the args to express() so just [0]
+                    is_variable_declarator_or_assignment_expression_calling_func(node, express_identifier)[0]
+                    for express_identifier in express_identifiers
+                ])
+                if not is_calling_express:
+                    continue
+                app_identifier = get_identifier_from_variable_declarator(node)
+                if app_identifier is not None:
+                    app_identifiers.add(app_identifier)
+
+    return app_identifiers
 
 
 def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:

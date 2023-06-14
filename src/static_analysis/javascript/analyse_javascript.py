@@ -2,8 +2,8 @@ from tree_sitter import Language, Parser, Tree
 from static_analysis.javascript.analyse_express import analyse_express
 
 from static_analysis.javascript.utils import (
-    get_module_name_from_import_statement, get_module_name_from_require_args, is_variable_declarator_calling_require,
-    traverse_tree_depth_first
+    get_module_name_from_import_statement, get_module_name_from_require_args,
+    is_variable_declarator_or_assignment_expression_calling_func, traverse_tree_depth_first
 )
 
 JS_LANGUAGE = Language('/analysers/tree-sitter/languages.so', 'javascript')
@@ -23,7 +23,9 @@ def get_imports(tree: Tree) -> set[str]:
                     imports.add(module_name)
 
             case "variable_declarator":  # e.g 'express = require("express")'
-                is_calling_require, require_args = is_variable_declarator_calling_require(node)
+                is_calling_require, require_args = is_variable_declarator_or_assignment_expression_calling_func(
+                    node, "require"
+                )
                 if not is_calling_require:
                     continue
                 module_name = get_module_name_from_require_args(require_args)

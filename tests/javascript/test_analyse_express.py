@@ -1,6 +1,6 @@
 import pytest
 
-from static_analysis.javascript.analyse_express import get_express_identifiers
+from static_analysis.javascript.analyse_express import get_app_identifiers, get_express_identifiers
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
 
@@ -31,3 +31,24 @@ def test_get_express_identifiers(test_import, expected_identifiers):
     detected_identifiers = get_express_identifiers(parsed_module)
 
     assert detected_identifiers == expected_identifiers
+
+
+@pytest.mark.parametrize(
+    "test_app,express_identifiers,expected_app_identifiers",
+    [
+        ("foo = express()", {"express"}, {"foo"}),
+        ("const bar = express()", {"express"}, {"bar"}),
+        ("var baz = express()", {"express"}, {"baz"}),
+        ("let qux = express()", {"express"}, {"qux"}),
+        ("quux = express({ strict: false })", {"express"}, {"quux"}),
+        ("const corge = express({ strict: false })", {"express"}, {"corge"}),
+        ("var grault = express({ strict: false })", {"express"}, {"grault"}),
+        ("let garply = express({ strict: false })", {"express"}, {"garply"}),
+    ]
+)
+def test_get_app_identifiers(test_app, express_identifiers, expected_app_identifiers):
+    parsed_module = JS_PARSER.parse(test_app.encode("utf-8"))
+
+    detected_app_identifiers = get_app_identifiers(parsed_module, express_identifiers)
+
+    assert detected_app_identifiers == expected_app_identifiers
