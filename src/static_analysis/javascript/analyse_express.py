@@ -24,7 +24,7 @@ def get_express_identifiers(tree: Tree) -> set[str]:
         # return an empty set
         import_clauses = get_children_of_type(node, "import_clause")
         if len(import_clauses) == 0 or len(import_clauses) != 1:
-            return set()
+            continue
         import_clause = import_clauses[0]
 
         # Check for an 'express' identifier as direct child of the import clause, e.g.:
