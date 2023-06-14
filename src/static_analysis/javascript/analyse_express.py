@@ -70,7 +70,7 @@ def analyse_express(tree: Tree) -> dict | None:
     return {
         "openapi": "3.0.0",
         "info": {
-            "title": "Static Analysis - Flask",
+            "title": "Static Analysis - Express",
         },
         "paths": {path: {method: {} for method in methods} for path, methods in paths.items()},
     }
