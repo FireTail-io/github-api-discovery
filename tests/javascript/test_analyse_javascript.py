@@ -1,26 +1,24 @@
 import pytest
 
-from static_analysis.javascript.analyse_javascript import get_imports, JS_PARSER
+from static_analysis.javascript.analyse_javascript import JS_PARSER, get_imports
 
 
 @pytest.mark.parametrize(
-    "test_import,expected_identifiers",
+    "test_import,expected_imports",
     [
         ('import express from "express";', {"express"}),
-        ('import * as foo from "express";', {"foo.default"}),
-        ('import { default as bar } from "express";', {"bar"}),
-        ('import { Request, Response, default as baz } from "express";', {"baz"}),
-        ('import express, * as qux from "express";', {"express", "qux.default"}),
-        ('import express, { default as quux } from "express";', {"express", "quux"}),
-        ('import express, { Request, Response, default as corge } from "express";', {"express", "corge"}),
+        ('import * as foo from "express";', {"express"}),
+        ('import { default as bar } from "express";', {"express"}),
+        ('import { Request, Response, default as baz } from "express";', {"express"}),
+        ('import express, * as qux from "express";', {"express"}),
+        ('import express, { default as quux } from "express";', {"express"}),
+        ('import express, { Request, Response, default as corge } from "express";', {"express"}),
         # TODO: ('const express = require(\'express\');', {"express"}),
     ],
 )
-def test_get_imports(test_import, expected_identifiers):
+def test_get_imports(test_import, expected_imports):
     parsed_module = JS_PARSER.parse(test_import.encode("utf-8"))
 
-    print(parsed_module.root_node.sexp())
+    detected_identifiers = get_imports(parsed_module)
 
-    detected_imports = get_imports(parsed_module)
-
-    assert detected_imports == {"express": expected_identifiers}
+    assert detected_identifiers == expected_imports
