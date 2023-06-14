@@ -53,6 +53,9 @@ def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> d
 def analyse_express(tree: Tree) -> dict | None:
     express_identifiers = get_express_identifiers(tree)
 
+    # NOTE: analyse_express naively assumes that any identifiers to which apps our routers are assigned to are not later
+    # reused for other vars. If they are, and they have methods with the same signature and name as those used to create
+    # paths and methods in a router/app then they'll get detected just the same.
     app_identifiers = get_app_identifiers(tree, express_identifiers)
     router_identifiers = get_app_identifiers(tree, express_identifiers)
 
