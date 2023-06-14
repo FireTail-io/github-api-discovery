@@ -1,6 +1,6 @@
 from tree_sitter import Tree, Node
 
-from static_analysis.javascript.utils import get_children_of_type, traverse_tree_depth_first
+from static_analysis.javascript.utils import get_children_of_type, get_module_name_from_import_statement, traverse_tree_depth_first
 
 
 def get_express_identifiers(tree: Tree) -> set[str]:
@@ -8,6 +8,11 @@ def get_express_identifiers(tree: Tree) -> set[str]:
 
     for node in traverse_tree_depth_first(tree):
         if node.type != "import_statement":
+            continue
+
+        # Check the import_statement is importing express
+        module_name = get_module_name_from_import_statement(node)
+        if module_name != "express":
             continue
 
         # Find any import clauses, e.g:
