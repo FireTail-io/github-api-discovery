@@ -88,6 +88,7 @@ def test_get_app_identifiers(test_app, express_identifiers, expected_app_identif
                 '/api/user/:name/repos': {'get'},
             }
         ),
+        ("tests/javascript/example_apps/express_router_apiv1.js", {"apiv1"}, {"/": {"get"}, "/users": {"get"}}),
     ]
 )
 def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, expected_paths):
