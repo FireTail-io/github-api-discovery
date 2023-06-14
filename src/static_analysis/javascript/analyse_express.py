@@ -33,21 +33,41 @@ def get_express_identifiers(tree: Tree) -> set[str]:
     return express_identifiers
 
 
-def analyse_express(tree: Tree) -> dict | None:
-    identifiers = get_express_identifiers(tree)
-
-    print("identifiers:", identifiers)
-
+def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
     # TODO: find app identifiers
+    return set()
 
-    # TODO: find calls to .all(), .route(), .checkout(), .copy(), .delete(), .get(), .head(), .lock(), .merge(),
-    # .mkactivity(), .mkcol(), .move(), m-.search(), .notify(), .options(), .patch(), .post(), .purge(), .put(),
-    # .report(), .search(), .subscribe(), .trace(), .unlock(), and .unsubscribe() on app identifiers
 
+def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
     # TODO: find router identifiers
+    return set()
 
+
+def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> dict[str, list[str]]:
     # TODO: find calls to .all(), .route(), .checkout(), .copy(), .delete(), .get(), .head(), .lock(), .merge(),
     # .mkactivity(), .mkcol(), .move(), m-.search(), .notify(), .options(), .patch(), .post(), .purge(), .put(),
-    # .report(), .search(), .subscribe(), .trace(), .unlock(), and .unsubscribe() on router identifiers
+    # .report(), .search(), .subscribe(), .trace(), .unlock(), and .unsubscribe() on app and router identifiers
+    return {}
 
-    return None
+
+def analyse_express(tree: Tree) -> dict | None:
+    express_identifiers = get_express_identifiers(tree)
+
+    app_identifiers = get_app_identifiers(tree, express_identifiers)
+    router_identifiers = get_app_identifiers(tree, express_identifiers)
+
+    paths = get_paths_and_methods(app_identifiers.union(router_identifiers))
+
+    # If there's no paths, there's no point creating an appspec
+    if len(paths) == 0:
+        return None
+
+    # This isn't a valid OpenAPI spec as it's missing a version field under the info object, and at least one response
+    # definition under each of the methods, but it's good enough for now.
+    return {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "Static Analysis - Flask",
+        },
+        "paths": {path: {method: {} for method in methods} for path, methods in paths.items()},
+    }
