@@ -67,10 +67,11 @@ def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> d
     # .report(), .search(), .subscribe(), .trace(), .unlock(), and .unsubscribe() on app and router identifiers
     paths: dict[str, set[str]] = {}
 
+    # NOTE: This is a subset of all the methods that you can use in Express; specifically, an intersection with all the
+    # methods supported by the OpenAPI 3 specification with the addition of "all" and "use" which in Express accept all
+    # HTTP methods
     SUPPORTED_EXPRESS_PROPERTIES = {
-        "all", "checkout", "copy", "delete", "get", "head", "lock", "merge", "mkactivity", "mkcol", "move", "notify",
-        "options", "patch", "post", "purge", "put", "report", "search", "subscribe", "trace", "unlock", "unsubscribe",
-        "use"
+        "all", "delete", "get", "head", "options", "patch", "post", "put", "trace", "use"
     }
 
     for node in traverse_tree_depth_first(tree):

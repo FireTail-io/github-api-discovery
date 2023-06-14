@@ -63,26 +63,14 @@ def test_get_app_identifiers(test_app, express_identifiers, expected_app_identif
         (
             "tests/javascript/example_apps/express_hello_world_all.js",
             {"app"},
-            {"/": {
-                'head', 'merge', 'options', 'move', 'subscribe', 'purge', 'search', 'unsubscribe', 'put', 'report',
-                'post', 'patch', 'unlock', 'delete', 'lock', 'mkcol', 'mkactivity', 'checkout', 'copy', 'notify',
-                'trace', 'get'
-            }}
+            {"/": {'delete', 'trace', 'options', 'head', 'get', 'patch', 'post', 'put'}}
         ),
         (
             "tests/javascript/example_apps/express_web_service.js",
             {"app"},
             {
-                '/': {
-                    'report', 'mkcol', 'mkactivity', 'notify', 'checkout', 'head', 'subscribe', 'delete', 'options',
-                    'search', 'patch', 'purge', 'trace', 'lock', 'get', 'merge', 'copy', 'unsubscribe', 'put', 'unlock',
-                    'move', 'post'
-                },
-                '/api': {
-                    'purge', 'report', 'trace', 'mkcol', 'mkactivity', 'notify', 'lock', 'checkout', 'head', 'get',
-                    'merge', 'copy', 'unsubscribe', 'subscribe', 'delete', 'put', 'unlock', 'search', 'options', 'move',
-                    'post', 'patch'
-                },
+                '/': {'delete', 'trace', 'options', 'head', 'get', 'patch', 'post', 'put'},
+                '/api': {'delete', 'trace', 'options', 'head', 'get', 'patch', 'post', 'put'},
                 '/api/users': {'get'},
                 '/api/repos': {'get'},
                 '/api/user/:name/repos': {'get'},
