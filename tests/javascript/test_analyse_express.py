@@ -1,11 +1,13 @@
 import pytest
 
-from static_analysis.javascript.analyse_express import get_app_identifiers, get_express_identifiers
+from static_analysis.javascript.analyse_express import (
+    get_app_identifiers, get_express_identifiers, get_paths_and_methods
+)
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
 
 @pytest.mark.parametrize(
-    "test_import,expected_identifiers",
+    "test_import, expected_identifiers",
     [
         ('import express from "express";', {"express"}),
         ('import * as foo from "express";', {"foo.default"}),
@@ -34,7 +36,7 @@ def test_get_express_identifiers(test_import, expected_identifiers):
 
 
 @pytest.mark.parametrize(
-    "test_app,express_identifiers,expected_app_identifiers",
+    "test_app, express_identifiers, expected_app_identifiers",
     [
         ("foo = express()", {"express"}, {"foo"}),
         ("const bar = express()", {"express"}, {"bar"}),
@@ -52,3 +54,49 @@ def test_get_app_identifiers(test_app, express_identifiers, expected_app_identif
     detected_app_identifiers = get_app_identifiers(parsed_module, express_identifiers)
 
     assert detected_app_identifiers == expected_app_identifiers
+
+
+@pytest.mark.parametrize(
+    "test_app_filename, app_and_router_identifiers, expected_paths",
+    [
+        ("tests/javascript/example_apps/express_hello_world_get.js", {"app"}, {"/": {"get"}}),
+        (
+            "tests/javascript/example_apps/express_hello_world_all.js",
+            {"app"},
+            {"/": {
+                'head', 'merge', 'options', 'move', 'subscribe', 'purge', 'search', 'unsubscribe', 'put', 'report',
+                'post', 'patch', 'unlock', 'delete', 'lock', 'mkcol', 'mkactivity', 'checkout', 'copy', 'notify',
+                'trace', 'get'
+            }}
+        ),
+        (
+            "tests/javascript/example_apps/express_web_service.js",
+            {"app"},
+            {
+                '/': {
+                    'report', 'mkcol', 'mkactivity', 'notify', 'checkout', 'head', 'subscribe', 'delete', 'options',
+                    'search', 'patch', 'purge', 'trace', 'lock', 'get', 'merge', 'copy', 'unsubscribe', 'put', 'unlock',
+                    'move', 'post'
+                },
+                '/api': {
+                    'purge', 'report', 'trace', 'mkcol', 'mkactivity', 'notify', 'lock', 'checkout', 'head', 'get',
+                    'merge', 'copy', 'unsubscribe', 'subscribe', 'delete', 'put', 'unlock', 'search', 'options', 'move',
+                    'post', 'patch'
+                },
+                '/api/users': {'get'},
+                '/api/repos': {'get'},
+                '/api/user/:name/repos': {'get'},
+            }
+        ),
+    ]
+)
+def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, expected_paths):
+    file = open(test_app_filename, "r")
+    file_contents = file.read()
+    file.close()
+
+    parsed_module = JS_PARSER.parse(file_contents.encode("utf-8"))
+
+    detected_paths = get_paths_and_methods(parsed_module, app_and_router_identifiers)
+
+    assert detected_paths == expected_paths
