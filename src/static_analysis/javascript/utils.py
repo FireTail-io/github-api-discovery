@@ -51,6 +51,47 @@ def is_variable_declarator_or_assignment_expression_calling_func(
     return True, call_expression_arguments[0]
 
 
+def is_variable_declarator_or_assignment_expression_calling_func_member(
+    variable_declarator_or_assignment_expression: Node, object_identifier: str, property_identifier: str
+) -> tuple[bool, Node | None]:
+    # We're looking for a single call expression, e.g 'require("express")'
+    call_expressions = get_children_of_type(variable_declarator_or_assignment_expression, "call_expression")
+    if len(call_expressions) != 1:
+        return False, None
+    print(call_expressions[0].text)
+    print(call_expressions[0].children)
+
+    # The call expression should have a single member_expression child
+    member_expressions = get_children_of_type(call_expressions[0], "member_expression")
+    if len(member_expressions) != 1:
+        return False, None
+
+    # The member_expression should have a single identifier child equal to the object_identifier
+    object_identifiers = get_children_of_type(member_expressions[0], "identifier")
+    if (
+        len(object_identifiers) != 1
+        or type(object_identifiers[0].text) != bytes
+        or object_identifiers[0].text.decode("utf-8") != object_identifier
+    ):
+        return False, None
+
+    # The member_expression should have a single property_identifier child equal to the property_identifier
+    property_identifiers = get_children_of_type(member_expressions[0], "property_identifier")
+    if (
+        len(property_identifiers) != 1
+        or type(property_identifiers[0].text) != bytes
+        or property_identifiers[0].text.decode("utf-8") != property_identifier
+    ):
+        return False, None
+
+    # The call expression should have a single arguments node
+    call_expression_arguments = get_children_of_type(call_expressions[0], "arguments")
+    if len(call_expression_arguments) != 1:
+        return False, None
+
+    return True, call_expression_arguments[0]
+
+
 def get_module_name_from_require_args(call_expression_arguments: Node) -> str | None:
     # The call expression arguments node should have exactly three childen, '(', '"express"' and ')'
     if call_expression_arguments.child_count != 3:

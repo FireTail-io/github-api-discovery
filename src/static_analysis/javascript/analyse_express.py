@@ -4,7 +4,8 @@ from static_analysis.javascript.utils import (
     get_children_of_type, get_default_identifiers_from_import_statement,
     get_identifier_from_variable_declarator_or_assignment_expression, get_identifiers_from_variable_declarator,
     get_module_name_from_import_statement, get_module_name_from_require_args,
-    is_variable_declarator_or_assignment_expression_calling_func, traverse_tree_depth_first
+    is_variable_declarator_or_assignment_expression_calling_func,
+    is_variable_declarator_or_assignment_expression_calling_func_member, traverse_tree_depth_first
 )
 
 
@@ -63,14 +64,43 @@ def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
                 ])
                 if not is_calling_express:
                     continue
+
                 app_identifiers.update(identifiers_assigned_to)
 
     return app_identifiers
 
 
 def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
-    # TODO: find router identifiers
-    return set()
+    router_identifiers = set()
+
+    for node in traverse_tree_depth_first(tree):
+        match node.type:
+            case "variable_declarator" | "assignment_expression":
+                # Pick out all the identifiers from nested assignment_expressions
+                # E.g. 'foo = bar = baz = express();'
+                identifiers_assigned_to, last_assignment_expression = get_identifiers_from_variable_declarator(node)
+
+                # If we didn't manage to extract any identifiers then we don't care if express is involved, because we
+                # don't have any identifiers to add to the set of app_identifiers anyway
+                if len(identifiers_assigned_to) == 0:
+                    continue
+
+                # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
+                # can now check to see if it actually calls express.Router(). E.g. if the variable declarator was
+                # 'foo = bar = baz = express.Router();', last_assignment_expression would be 'baz = express.Router();'
+                is_calling_express_router = any([
+                    # we don't care about the args to express() so just [0]
+                    is_variable_declarator_or_assignment_expression_calling_func_member(
+                        last_assignment_expression, express_identifier, "Router"
+                    )[0]
+                    for express_identifier in express_identifiers
+                ])
+                if not is_calling_express_router:
+                    continue
+
+                router_identifiers.update(identifiers_assigned_to)
+
+    return router_identifiers
 
 
 def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> dict[str, set[str]]:
