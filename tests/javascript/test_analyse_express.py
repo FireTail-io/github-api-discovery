@@ -1,7 +1,8 @@
 import pytest
+import yaml
 
 from static_analysis.javascript.analyse_express import (
-    get_app_identifiers, get_express_identifiers, get_paths_and_methods
+    analyse_express, get_app_identifiers, get_express_identifiers, get_paths_and_methods
 )
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
@@ -91,3 +92,30 @@ def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, ex
     detected_paths = get_paths_and_methods(parsed_module, app_and_router_identifiers)
 
     assert detected_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "test_app_filename, expected_appspec_filename",
+    [
+        ("tests/javascript/example_apps/express_hello_world_get.js", 
+         "tests/javascript/example_apps/express_hello_world_get_appspec.yml"),
+        ("tests/javascript/example_apps/express_hello_world_all.js",
+         "tests/javascript/example_apps/express_hello_world_all_appspec.yml"),
+        ("tests/javascript/example_apps/express_web_service.js",
+         "tests/javascript/example_apps/express_web_service_appspec.yml"),
+    ]
+)
+def test_analyse_express(test_app_filename, expected_appspec_filename):
+    file = open(test_app_filename, "r")
+    app_file_contents = file.read()
+    file.close()
+
+    file = open(expected_appspec_filename, "r")
+    expected_appspec = yaml.load(file.read(), Loader=yaml.Loader)
+    file.close()
+
+    parsed_module = JS_PARSER.parse(app_file_contents.encode("utf-8"))
+
+    appspec = analyse_express(parsed_module)
+
+    assert appspec == expected_appspec

@@ -1,5 +1,5 @@
 /**
- * This example app was taken from https://github.com/expressjs/express
+ * This example app was derived from https://github.com/expressjs/express
  * See examples/web-service/index.js
  */
 
@@ -9,7 +9,7 @@
  * Module dependencies.
  */
 
-var express = require('../../');
+var express = require('express');
 
 var app = module.exports = express();
 
