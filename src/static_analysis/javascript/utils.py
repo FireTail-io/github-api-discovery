@@ -27,10 +27,10 @@ def get_module_name_from_import_statement(import_statement: Node) -> str | None:
 
 
 def is_variable_declarator_or_assignment_expression_calling_func(
-    variable_declarator: Node, func_identifier: str
+    variable_declarator_or_assignment_expression: Node, func_identifier: str
 ) -> tuple[bool, Node | None]:
     # We're looking for a single call expression, e.g 'require("express")'
-    call_expressions = get_children_of_type(variable_declarator, "call_expression")
+    call_expressions = get_children_of_type(variable_declarator_or_assignment_expression, "call_expression")
     if len(call_expressions) != 1:
         return False, None
 
@@ -73,9 +73,11 @@ def get_module_name_from_require_args(call_expression_arguments: Node) -> str | 
     return string_fragments[0].text.decode("utf-8")
 
 
-def get_identifier_from_variable_declarator(variable_declarator: Node) -> str | None:
+def get_identifier_from_variable_declarator_or_assignment_expression(
+    variable_declarator_or_assignment_expression: Node
+) -> str | None:
     # Get the identifier the variable declarator is assigning to; there should be exactly one
-    identifiers = get_children_of_type(variable_declarator, "identifier")
+    identifiers = get_children_of_type(variable_declarator_or_assignment_expression, "identifier")
     if (
         len(identifiers) == 1
         and type(identifiers[0].text) == bytes
