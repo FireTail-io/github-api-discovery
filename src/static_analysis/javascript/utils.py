@@ -86,6 +86,24 @@ def get_identifier_from_variable_declarator_or_assignment_expression(
     return None
 
 
+def get_identifiers_from_variable_declarator(variable_declarator: Node) -> tuple[set[str], Node]:
+    identifiers = set()
+
+    current_node = variable_declarator
+    while True:
+        identifier = get_identifier_from_variable_declarator_or_assignment_expression(current_node)
+        if identifier is not None:
+            identifiers.add(identifier)
+
+        # Update current_node to an assignment expression child of the current_node if there is one
+        sub_assignment_expressions = get_children_of_type(current_node, "assignment_expression")
+        if len(sub_assignment_expressions) != 1:
+            break
+        current_node = sub_assignment_expressions[0]
+
+    return identifiers, current_node
+
+
 def get_default_identifiers_from_import_statement(import_statement: Node) -> set[str]:
     default_identifiers = set()
 

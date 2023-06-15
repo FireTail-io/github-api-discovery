@@ -2,7 +2,7 @@ from tree_sitter import Tree
 
 from static_analysis.javascript.utils import (
     get_children_of_type, get_default_identifiers_from_import_statement,
-    get_identifier_from_variable_declarator_or_assignment_expression,
+    get_identifier_from_variable_declarator_or_assignment_expression, get_identifiers_from_variable_declarator,
     get_module_name_from_import_statement, get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func, traverse_tree_depth_first
 )
@@ -44,30 +44,21 @@ def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = express();'
-                identifiers_assigned_to = set()
-                current_node = node
-                while True:
-                    identifier = get_identifier_from_variable_declarator_or_assignment_expression(current_node)
-                    if identifier is not None:
-                        identifiers_assigned_to.add(identifier)
-
-                    # Update current_node to an assignment expression child of the current_node if there is one
-                    sub_assignment_expressions = get_children_of_type(current_node, "assignment_expression")
-                    if len(sub_assignment_expressions) != 1:
-                        break
-                    current_node = sub_assignment_expressions[0]
+                identifiers_assigned_to, last_assignment_expression = get_identifiers_from_variable_declarator(node)
 
                 # If we didn't manage to extract any identifiers then we don't care if express is involved, because we
                 # don't have any identifiers to add to the set of app_identifiers anyway
                 if len(identifiers_assigned_to) == 0:
                     continue
 
-                # Once we've traversed through any sub assignment_expressions, we can check the last one actually calls
-                # express. E.g. if the variable declarator was 'foo = bar = baz = express();', current_node should now
-                # be 'baz = express();'
+                # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
+                # can now check to see if it actually calls express. E.g. if the variable declarator was
+                # 'foo = bar = baz = express();', last_assignment_expression would be 'baz = express();'
                 is_calling_express = any([
                     # we don't care about the args to express() so just [0]
-                    is_variable_declarator_or_assignment_expression_calling_func(current_node, express_identifier)[0]
+                    is_variable_declarator_or_assignment_expression_calling_func(
+                        last_assignment_expression, express_identifier
+                    )[0]
                     for express_identifier in express_identifiers
                 ])
                 if not is_calling_express:
