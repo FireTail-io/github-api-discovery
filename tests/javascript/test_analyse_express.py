@@ -2,7 +2,7 @@ import pytest
 import yaml
 
 from static_analysis.javascript.analyse_express import (
-    analyse_express, get_app_identifiers, get_express_identifiers, get_paths_and_methods
+    analyse_express, get_app_identifiers, get_express_identifiers, get_paths_and_methods, get_router_identifiers
 )
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
@@ -57,6 +57,29 @@ def test_get_app_identifiers(test_app, express_identifiers, expected_app_identif
     detected_app_identifiers = get_app_identifiers(parsed_module, express_identifiers)
 
     assert detected_app_identifiers == expected_app_identifiers
+
+
+@pytest.mark.parametrize(
+    "test_app, router_identifiers, expected_router_identifiers",
+    [
+        ("foo = express.Router()", {"express"}, {"foo"}),
+        ("const bar = express.Router()", {"express"}, {"bar"}),
+        ("var baz = express.Router()", {"express"}, {"baz"}),
+        ("let qux = express.Router()", {"express"}, {"qux"}),
+        ("quux = express.Router({ strict: false })", {"express"}, {"quux"}),
+        ("const corge = express.Router({ strict: false })", {"express"}, {"corge"}),
+        ("var grault = express.Router({ strict: false })", {"express"}, {"grault"}),
+        ("let garply = express.Router({ strict: false })", {"express"}, {"garply"}),
+        ('var waldo = foo = express.Router();', {"express"}, {"waldo", "foo"}),
+        ('var router = module.exports = express.Router();', {"express"}, {"router"})
+    ]
+)
+def test_get_router_identifiers(test_app, router_identifiers, expected_router_identifiers):
+    parsed_module = JS_PARSER.parse(test_app.encode("utf-8"))
+
+    detected_app_identifiers = get_router_identifiers(parsed_module, router_identifiers)
+
+    assert detected_app_identifiers == expected_router_identifiers
 
 
 @pytest.mark.parametrize(
