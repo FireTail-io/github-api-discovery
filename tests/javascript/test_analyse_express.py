@@ -46,6 +46,8 @@ def test_get_express_identifiers(test_import, expected_identifiers):
         ("const corge = express({ strict: false })", {"express"}, {"corge"}),
         ("var grault = express({ strict: false })", {"express"}, {"grault"}),
         ("let garply = express({ strict: false })", {"express"}, {"garply"}),
+        ('var waldo = foo = express();', {"express"}, {"waldo", "foo"}),
+        ('var app = module.exports = express();', {"express"}, {"app"})
     ]
 )
 def test_get_app_identifiers(test_app, express_identifiers, expected_app_identifiers):
