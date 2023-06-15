@@ -85,14 +85,14 @@ def test_get_router_identifiers(test_app, router_identifiers, expected_router_id
 @pytest.mark.parametrize(
     "test_app_filename, app_and_router_identifiers, expected_paths",
     [
-        ("tests/javascript/example_apps/express_hello_world_get.js", {"app"}, {"/": {"get"}}),
+        ("tests/javascript/example_apps/express/hello_world_get.js", {"app"}, {"/": {"get"}}),
         (
-            "tests/javascript/example_apps/express_hello_world_all.js",
+            "tests/javascript/example_apps/express/hello_world_all.js",
             {"app"},
             {"/": {'delete', 'trace', 'options', 'head', 'get', 'patch', 'post', 'put'}}
         ),
         (
-            "tests/javascript/example_apps/express_web_service.js",
+            "tests/javascript/example_apps/express/web_service.js",
             {"app"},
             {
                 '/': {'delete', 'trace', 'options', 'head', 'get', 'patch', 'post', 'put'},
@@ -102,7 +102,7 @@ def test_get_router_identifiers(test_app, router_identifiers, expected_router_id
                 '/api/user/:name/repos': {'get'},
             }
         ),
-        ("tests/javascript/example_apps/express_router_apiv1.js", {"apiv1"}, {"/": {"get"}, "/users": {"get"}}),
+        ("tests/javascript/example_apps/express/router_apiv1.js", {"apiv1"}, {"/": {"get"}, "/users": {"get"}}),
     ]
 )
 def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, expected_paths):
@@ -120,14 +120,14 @@ def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, ex
 @pytest.mark.parametrize(
     "test_app_filename, expected_appspec_filename",
     [
-        ("tests/javascript/example_apps/express_hello_world_get.js", 
-         "tests/javascript/example_apps/express_hello_world_get_appspec.yml"),
-        ("tests/javascript/example_apps/express_hello_world_all.js",
-         "tests/javascript/example_apps/express_hello_world_all_appspec.yml"),
-        ("tests/javascript/example_apps/express_router_apiv1.js",
-         "tests/javascript/example_apps/express_router_apiv1_appspec.yml"),
-        ("tests/javascript/example_apps/express_web_service.js",
-         "tests/javascript/example_apps/express_web_service_appspec.yml"),
+        ("tests/javascript/example_apps/express/hello_world_get.js", 
+         "tests/javascript/example_apps/express/hello_world_get_appspec.yml"),
+        ("tests/javascript/example_apps/express/hello_world_all.js",
+         "tests/javascript/example_apps/express/hello_world_all_appspec.yml"),
+        ("tests/javascript/example_apps/express/router_apiv1.js",
+         "tests/javascript/example_apps/express/router_apiv1_appspec.yml"),
+        ("tests/javascript/example_apps/express/web_service.js",
+         "tests/javascript/example_apps/express/web_service_appspec.yml"),
     ]
 )
 def test_analyse_express(test_app_filename, expected_appspec_filename):
