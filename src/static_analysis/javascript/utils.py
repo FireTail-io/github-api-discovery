@@ -58,8 +58,6 @@ def is_variable_declarator_or_assignment_expression_calling_func_member(
     call_expressions = get_children_of_type(variable_declarator_or_assignment_expression, "call_expression")
     if len(call_expressions) != 1:
         return False, None
-    print(call_expressions[0].text)
-    print(call_expressions[0].children)
 
     # The call expression should have a single member_expression child
     member_expressions = get_children_of_type(call_expressions[0], "member_expression")
