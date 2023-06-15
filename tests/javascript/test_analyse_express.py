@@ -154,6 +154,5 @@ def test_analyse_express(test_app_filename, expected_appspec_filename):
     parsed_module = JS_PARSER.parse(app_file_contents.encode("utf-8"))
 
     appspec = analyse_express(parsed_module)
-    print(yaml.dump(appspec))
 
     assert appspec == expected_appspec
