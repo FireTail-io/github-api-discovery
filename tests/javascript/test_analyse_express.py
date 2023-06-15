@@ -124,6 +124,8 @@ def test_get_paths_and_methods(test_app_filename, app_and_router_identifiers, ex
          "tests/javascript/example_apps/express_hello_world_get_appspec.yml"),
         ("tests/javascript/example_apps/express_hello_world_all.js",
          "tests/javascript/example_apps/express_hello_world_all_appspec.yml"),
+        ("tests/javascript/example_apps/express_router_apiv1.js",
+         "tests/javascript/example_apps/express_router_apiv1_appspec.yml"),
         ("tests/javascript/example_apps/express_web_service.js",
          "tests/javascript/example_apps/express_web_service_appspec.yml"),
     ]
@@ -140,5 +142,6 @@ def test_analyse_express(test_app_filename, expected_appspec_filename):
     parsed_module = JS_PARSER.parse(app_file_contents.encode("utf-8"))
 
     appspec = analyse_express(parsed_module)
+    print(yaml.dump(appspec))
 
     assert appspec == expected_appspec
