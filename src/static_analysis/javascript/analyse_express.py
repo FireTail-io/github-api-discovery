@@ -104,9 +104,6 @@ def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str
 
 
 def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> dict[str, set[str]]:
-    # TODO: find calls to .all(), .route(), .checkout(), .copy(), .delete(), .get(), .head(), .lock(), .merge(),
-    # .mkactivity(), .mkcol(), .move(), m-.search(), .notify(), .options(), .patch(), .post(), .purge(), .put(),
-    # .report(), .search(), .subscribe(), .trace(), .unlock(), and .unsubscribe() on app and router identifiers
     paths: dict[str, set[str]] = {}
 
     # NOTE: This is a subset of all the methods that you can use in Express; specifically, an intersection with all the
