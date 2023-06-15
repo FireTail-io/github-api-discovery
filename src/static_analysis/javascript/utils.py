@@ -113,14 +113,11 @@ def get_module_name_from_require_args(call_expression_arguments: Node) -> str | 
 
 
 def get_identifier_from_variable_declarator_or_assignment_expression(
-    variable_declarator_or_assignment_expression: Node
+    variable_declarator_or_assignment_expression: Node,
 ) -> str | None:
     # Get the identifier the variable declarator is assigning to; there should be exactly one
     identifiers = get_children_of_type(variable_declarator_or_assignment_expression, "identifier")
-    if (
-        len(identifiers) == 1
-        and type(identifiers[0].text) == bytes
-    ):
+    if len(identifiers) == 1 and type(identifiers[0].text) == bytes:
         return identifiers[0].text.decode("utf-8")
     return None
 
