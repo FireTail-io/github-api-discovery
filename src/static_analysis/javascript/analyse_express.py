@@ -139,7 +139,7 @@ def analyse_express(tree: Tree) -> dict | None:
     # reused for other vars. If they are, and they have methods with the same signature and name as those used to create
     # paths and methods in a router/app then they'll get detected just the same.
     app_identifiers = get_app_identifiers(tree, express_identifiers)
-    router_identifiers = get_app_identifiers(tree, express_identifiers)
+    router_identifiers = get_router_identifiers(tree, express_identifiers)
 
     paths = get_paths_and_methods(tree, app_identifiers.union(router_identifiers))
 
