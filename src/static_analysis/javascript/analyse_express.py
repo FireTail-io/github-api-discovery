@@ -141,7 +141,7 @@ def analyse_express(tree: Tree) -> dict | None:
     app_identifiers = get_app_identifiers(tree, express_identifiers)
     router_identifiers = get_app_identifiers(tree, express_identifiers)
 
-    paths = get_paths_and_methods(app_identifiers.union(router_identifiers))
+    paths = get_paths_and_methods(tree, app_identifiers.union(router_identifiers))
 
     # If there's no paths, there's no point creating an appspec
     if len(paths) == 0:
