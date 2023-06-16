@@ -1,0 +1,13 @@
+info:
+  title: Static Analysis - Express
+openapi: 3.0.0
+paths:
+  /:
+    delete: {}
+    get: {}
+    head: {}
+    options: {}
+    patch: {}
+    post: {}
+    put: {}
+    trace: {}
