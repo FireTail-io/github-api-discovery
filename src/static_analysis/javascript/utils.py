@@ -123,7 +123,7 @@ def get_identifier_from_variable_declarator_or_assignment_expression(
 
 
 def get_identifiers_from_variable_declarator_or_assignment_expression(
-    variable_declarator: Node
+    variable_declarator: Node,
 ) -> tuple[set[str], Node]:
     identifiers = set()
 
