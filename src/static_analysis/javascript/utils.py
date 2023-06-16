@@ -1,10 +1,5 @@
-import datetime
 from typing import Generator
 from tree_sitter import Tree, Node
-
-
-def get_datestamp() -> str:
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def get_children_of_type(node: Node, type: str) -> list[Node]:
