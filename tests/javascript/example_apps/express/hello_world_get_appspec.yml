@@ -1,6 +1,10 @@
 info:
   title: Static Analysis - Express
+  version: '2000-01-01 00:00:00'
 openapi: 3.0.0
 paths:
   /:
-    get: {}
+    get:
+      responses:
+        default:
+          description: Discovered via static analysis

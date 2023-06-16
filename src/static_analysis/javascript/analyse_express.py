@@ -1,7 +1,7 @@
 from tree_sitter import Tree
 
 from static_analysis.javascript.utils import (
-    get_children_of_type, get_default_identifiers_from_import_statement,
+    get_children_of_type, get_datestamp, get_default_identifiers_from_import_statement,
     get_identifiers_from_variable_declarator_or_assignment_expression,
     get_module_name_from_import_statement, get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func,
@@ -206,6 +206,13 @@ def analyse_express(tree: Tree) -> dict | None:
         "openapi": "3.0.0",
         "info": {
             "title": "Static Analysis - Express",
+            "version": get_datestamp()
         },
-        "paths": {path: {method: {} for method in methods} for path, methods in paths.items()},
+        "paths": {
+            path: {
+                method: {
+                    "responses": {"default": {"description": "Discovered via static analysis"}}
+                } for method in methods
+            } for path, methods in paths.items()
+        },
     }

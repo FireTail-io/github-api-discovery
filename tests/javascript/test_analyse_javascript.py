@@ -1,7 +1,16 @@
+import datetime
 import pytest
 import yaml
 
 from static_analysis.javascript.analyse_javascript import JS_PARSER, analyse_javascript, get_imports
+
+
+@pytest.fixture(autouse=True)
+def patch_datetime_now(monkeypatch):
+    class PatchedDatetime(datetime.datetime):
+        def now():
+            return datetime.datetime(2000, 1, 1)
+    monkeypatch.setattr(datetime, 'datetime', PatchedDatetime)
 
 
 @pytest.mark.parametrize(
@@ -62,7 +71,7 @@ def test_get_imports(test_import, expected_imports):
     ],
 )
 def test_analyse_javascript(
-    test_app_filename, expected_detected_frameworks, expected_appspec_key, expected_appspec_filename
+    test_app_filename, expected_detected_frameworks, expected_appspec_key, expected_appspec_filename, patch_datetime_now
 ):
     file = open(test_app_filename, "r")
     test_app_file_contents = file.read()
