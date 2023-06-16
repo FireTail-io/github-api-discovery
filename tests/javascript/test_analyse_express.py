@@ -31,7 +31,7 @@ from static_analysis.javascript.analyse_javascript import JS_PARSER
         ('import express, { default as quux } from "not-express";', set()),
         ('import express, { Request, Response, default as corge } from "not-express";', set()),
         ("const grault = require('not-express');", set()),
-        ("const garply = waldo = require('not-express');", {}),
+        ("const garply = waldo = require('not-express');", set()),
     ],
 )
 def test_get_express_identifiers(test_import, expected_identifiers):
