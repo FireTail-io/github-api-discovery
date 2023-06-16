@@ -1,6 +1,7 @@
 import pytest
+import yaml
 
-from static_analysis.javascript.analyse_javascript import JS_PARSER, get_imports
+from static_analysis.javascript.analyse_javascript import JS_PARSER, analyse_javascript, get_imports
 
 
 @pytest.mark.parametrize(
@@ -29,3 +30,52 @@ def test_get_imports(test_import, expected_imports):
     detected_identifiers = get_imports(parsed_module)
 
     assert detected_identifiers == expected_imports
+
+
+@pytest.mark.parametrize(
+    "test_app_filename, expected_detected_frameworks, expected_appspec_key, expected_appspec_filename",
+    [
+        (
+            "tests/javascript/example_apps/express/hello_world_get.js",
+            {"express"},
+            "static-analysis:express:tests/javascript/example_apps/express/hello_world_get.js",
+            "tests/javascript/example_apps/express/hello_world_get_appspec.yml",
+        ),
+        (
+            "tests/javascript/example_apps/express/hello_world_all.js",
+            {"express"},
+            "static-analysis:express:tests/javascript/example_apps/express/hello_world_all.js",
+            "tests/javascript/example_apps/express/hello_world_all_appspec.yml",
+        ),
+        (
+            "tests/javascript/example_apps/express/router_apiv1.js",
+            {"express"},
+            "static-analysis:express:tests/javascript/example_apps/express/router_apiv1.js",
+            "tests/javascript/example_apps/express/router_apiv1_appspec.yml",
+        ),
+        (
+            "tests/javascript/example_apps/express/web_service.js",
+            {"express"},
+            "static-analysis:express:tests/javascript/example_apps/express/web_service.js",
+            "tests/javascript/example_apps/express/web_service_appspec.yml",
+        ),
+    ],
+)
+def test_analyse_javascript(
+    test_app_filename, expected_detected_frameworks, expected_appspec_key, expected_appspec_filename
+):
+    file = open(test_app_filename, "r")
+    test_app_file_contents = file.read()
+    file.close()
+
+    file = open(expected_appspec_filename, "r")
+    expected_appspec = yaml.load(file.read(), Loader=yaml.Loader)
+    file.close()
+
+    detected_frameworks, detected_appspecs = analyse_javascript(test_app_filename, test_app_file_contents)
+
+    assert detected_frameworks == expected_detected_frameworks
+
+    assert len(detected_appspecs) == 1
+    assert detected_appspecs.get(expected_appspec_key) is not None
+    assert detected_appspecs[expected_appspec_key] == expected_appspec
