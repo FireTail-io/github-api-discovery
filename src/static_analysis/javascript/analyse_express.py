@@ -2,7 +2,7 @@ from tree_sitter import Tree
 
 from static_analysis.javascript.utils import (
     get_children_of_type, get_default_identifiers_from_import_statement,
-    get_identifier_from_variable_declarator_or_assignment_expression, get_identifiers_from_variable_declarator,
+    get_identifiers_from_variable_declarator_or_assignment_expression,
     get_module_name_from_import_statement, get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func,
     is_variable_declarator_or_assignment_expression_calling_func_member, traverse_tree_depth_first
@@ -21,18 +21,30 @@ def get_express_identifiers(tree: Tree) -> set[str]:
                     continue
                 express_identifiers.update(get_default_identifiers_from_import_statement(node))
 
-            case "variable_declarator":
-                # For example, 'const express = require("express");'
+            case "variable_declarator" | "assignment_expression":
+                # Pick out all the identifiers from nested assignment_expressions
+                # E.g. 'foo = bar = baz = require("express");'
+                identifiers_assigned_to, last_assignment_expression = \
+                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+
+                # If we didn't manage to extract any identifiers then we don't care if require() is involved, because we
+                # don't have any identifiers to add to the set of express_identifiers anyway
+                if len(identifiers_assigned_to) == 0:
+                    continue
+
+                # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
+                # can now check to see if it actually calls require(). E.g. if the variable declarator was
+                # 'foo = bar = baz = require("express");', last_assignment_expression would be
+                # 'baz = require("express");'
                 is_calling_require, require_args = is_variable_declarator_or_assignment_expression_calling_func(
-                    node, "require"
+                    last_assignment_expression, "require"
                 )
                 if not is_calling_require:
                     continue
                 if get_module_name_from_require_args(require_args) != "express":
                     continue
-                express_identifier = get_identifier_from_variable_declarator_or_assignment_expression(node)
-                if express_identifier is not None:
-                    express_identifiers.add(express_identifier)
+
+                express_identifiers.update(identifiers_assigned_to)
 
     return express_identifiers
 
@@ -45,9 +57,10 @@ def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = express();'
-                identifiers_assigned_to, last_assignment_expression = get_identifiers_from_variable_declarator(node)
+                identifiers_assigned_to, last_assignment_expression = \
+                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
-                # If we didn't manage to extract any identifiers then we don't care if express is involved, because we
+                # If we didn't manage to extract any identifiers then we don't care if express() is involved, because we
                 # don't have any identifiers to add to the set of app_identifiers anyway
                 if len(identifiers_assigned_to) == 0:
                     continue
@@ -78,9 +91,10 @@ def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = express();'
-                identifiers_assigned_to, last_assignment_expression = get_identifiers_from_variable_declarator(node)
+                identifiers_assigned_to, last_assignment_expression = \
+                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
-                # If we didn't manage to extract any identifiers then we don't care if express is involved, because we
+                # If we didn't manage to extract any identifiers then we don't care if express() is involved, because we
                 # don't have any identifiers to add to the set of app_identifiers anyway
                 if len(identifiers_assigned_to) == 0:
                     continue
