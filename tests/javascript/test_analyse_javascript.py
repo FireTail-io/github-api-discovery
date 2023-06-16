@@ -14,6 +14,7 @@ from static_analysis.javascript.analyse_javascript import JS_PARSER, get_imports
         ('import express, { default as quux } from "express";', {"express"}),
         ('import express, { Request, Response, default as corge } from "express";', {"express"}),
         ("const express = require('express');", {"express"}),
+        ("const foo = bar = require('express');", {"express"}),
     ],
 )
 def test_get_imports(test_import, expected_imports):
