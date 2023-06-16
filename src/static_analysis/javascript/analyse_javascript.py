@@ -23,7 +23,7 @@ def get_imports(tree: Tree) -> set[str]:
                 if module_name is not None:
                     imports.add(module_name)
 
-            case "variable_declarator":
+            case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = require("express");'
                 identifiers_assigned_to, last_assignment_expression = \
