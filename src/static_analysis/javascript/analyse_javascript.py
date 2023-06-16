@@ -2,8 +2,9 @@ from tree_sitter import Language, Parser, Tree
 from static_analysis.javascript.analyse_express import analyse_express
 
 from static_analysis.javascript.utils import (
-    get_module_name_from_import_statement, get_module_name_from_require_args,
-    is_variable_declarator_or_assignment_expression_calling_func, traverse_tree_depth_first
+    get_identifiers_from_variable_declarator_or_assignment_expression, get_module_name_from_import_statement,
+    get_module_name_from_require_args, is_variable_declarator_or_assignment_expression_calling_func,
+    traverse_tree_depth_first
 )
 
 JS_LANGUAGE = Language('/analysers/tree-sitter/languages.so', 'javascript')
@@ -22,12 +23,29 @@ def get_imports(tree: Tree) -> set[str]:
                 if module_name is not None:
                     imports.add(module_name)
 
-            case "variable_declarator":  # e.g 'express = require("express")'
+            case "variable_declarator":
+                # Pick out all the identifiers from nested assignment_expressions
+                # E.g. 'foo = bar = baz = require("express");'
+                identifiers_assigned_to, last_assignment_expression = \
+                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+
+                # If we didn't manage to extract any identifiers then we don't care if require() is involved, because we
+                # don't have any identifiers to add to the set of express_identifiers anyway
+                if len(identifiers_assigned_to) == 0:
+                    continue
+
+                # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
+                # can now check to see if it actually calls require(). E.g. if the variable declarator was
+                # 'foo = bar = baz = require("express");', last_assignment_expression would be
+                # 'baz = require("express");'
                 is_calling_require, require_args = is_variable_declarator_or_assignment_expression_calling_func(
-                    node, "require"
+                    last_assignment_expression, "require"
                 )
                 if not is_calling_require:
                     continue
+
+                # Now we know it's calling require we can extract the module name being required from the args and add
+                # it to the imports set
                 module_name = get_module_name_from_require_args(require_args)
                 if module_name is not None:
                     imports.add(module_name)
