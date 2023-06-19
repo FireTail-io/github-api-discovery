@@ -1,13 +1,38 @@
 info:
   title: Static Analysis - Express
+  version: '2000-01-01 00:00:00'
 openapi: 3.0.0
 paths:
   /:
-    delete: {}
-    get: {}
-    head: {}
-    options: {}
-    patch: {}
-    post: {}
-    put: {}
-    trace: {}
+    delete:
+      responses:
+        default:
+          description: Discovered via static analysis
+    get:
+      responses:
+        default:
+          description: Discovered via static analysis
+    head:
+      responses:
+        default:
+          description: Discovered via static analysis
+    options:
+      responses:
+        default:
+          description: Discovered via static analysis
+    patch:
+      responses:
+        default:
+          description: Discovered via static analysis
+    post:
+      responses:
+        default:
+          description: Discovered via static analysis
+    put:
+      responses:
+        default:
+          description: Discovered via static analysis
+    trace:
+      responses:
+        default:
+          description: Discovered via static analysis

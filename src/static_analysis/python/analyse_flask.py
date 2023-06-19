@@ -1,5 +1,7 @@
 import ast
 
+from utils import get_datestamp
+
 
 def get_paths(module: ast.Module) -> dict[str, list[str]]:
     discovered_routes: dict[str, list[str]] = {}
@@ -121,6 +123,13 @@ def analyse_flask(module: ast.Module) -> dict | None:
         "openapi": "3.0.0",
         "info": {
             "title": "Static Analysis - Flask",
+            "version": get_datestamp()
         },
-        "paths": {path: {method: {} for method in methods} for path, methods in paths.items()},
+        "paths": {
+            path: {
+                method: {
+                    "responses": {"default": {"description": "Discovered via static analysis"}}
+                } for method in methods
+            } for path, methods in paths.items()
+        },
     }

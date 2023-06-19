@@ -51,16 +51,22 @@ func analyse(filePath string, fileContents string) (map[string]string, map[strin
 	if packageIdentifier, ok := importedSupportedFrameworks["net/http"]; ok {
 		netHttpPathsSlice := analyseNetHTTP(parsedFile, packageIdentifier)
 
-		netHttpPathsMap := map[string]struct{}{}
+		netHttpPathsMap := map[string]map[string]map[string]map[string]string{}
 		for _, path := range netHttpPathsSlice {
-			netHttpPathsMap[path] = struct{}{}
+			netHttpPathsMap[path] = map[string]map[string]map[string]string{
+				"responses": {
+					"default": {
+						"description": "Discovered via static analysis",
+					},
+				},
+			}
 		}
 
 		// Only make an appspec if there's at least one path detected
 		if len(netHttpPathsMap) > 0 {
 			openapiSpecs["static-analysis:net/http:" + filePath] = map[string]interface{}{
 				"openapi": "3.0.0",
-				"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
+				"info": map[string]string{"title": "Static Analysis - Golang net/http"},
 				"paths": netHttpPathsMap,
 			}
 		}

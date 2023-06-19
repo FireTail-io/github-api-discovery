@@ -30,8 +30,15 @@ func main() {
 	assert.Equal(t, map[string]interface{}{
 			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
 			"openapi": "3.0.0",
-			"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
-			"paths": map[string]struct{}{"/hello": {}},
+			"info": map[string]string{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]map[string]map[string]map[string]string{
+				"/hello": {
+					"responses": {
+						"default": {
+							"description": "Discovered via static analysis",
+						},
+					},
+				}},
 		},
 	}, openapiSpecs)
 }
@@ -60,8 +67,16 @@ func main() {
 	assert.Equal(t, map[string]interface{}{
 			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
 			"openapi": "3.0.0",
-			"info": map[string]interface{}{"title": "Static Analysis - Golang net/http"},
-			"paths": map[string]struct{}{"/hello": {}},
+			"info": map[string]string{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]map[string]map[string]map[string]string{
+				"/hello": {
+					"responses": {
+						"default": {
+							"description": "Discovered via static analysis",
+						},
+					},
+				},
+			},
 		},
 	}, openapiSpecs)
 }

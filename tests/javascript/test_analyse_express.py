@@ -1,3 +1,4 @@
+import datetime
 import pytest
 import yaml
 
@@ -9,6 +10,14 @@ from static_analysis.javascript.analyse_express import (
     get_router_identifiers,
 )
 from static_analysis.javascript.analyse_javascript import JS_PARSER
+
+
+@pytest.fixture(autouse=True)
+def patch_datetime_now(monkeypatch):
+    class PatchedDatetime(datetime.datetime):
+        def now():
+            return datetime.datetime(2000, 1, 1)
+    monkeypatch.setattr(datetime, 'datetime', PatchedDatetime)
 
 
 @pytest.mark.parametrize(

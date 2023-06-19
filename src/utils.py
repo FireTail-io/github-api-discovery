@@ -16,6 +16,10 @@ logger.addHandler(logger_handler)
 FuncReturnType = TypeVar("FuncReturnType")
 
 
+def get_datestamp() -> str:
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: GithubClient) -> FuncReturnType:
     while True:
         try:
