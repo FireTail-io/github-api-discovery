@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, field
+
 from github.Repository import Repository as GithubRepository
 
 

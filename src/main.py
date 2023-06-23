@@ -1,5 +1,6 @@
-from dacite import from_dict
 import yaml
+from dacite import from_dict
+
 from config import Config
 from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN
 from scanning import scan_with_token

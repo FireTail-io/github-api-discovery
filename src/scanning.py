@@ -1,12 +1,13 @@
 import base64
-import github
-from github import Github as GithubClient
-from github.GithubException import GithubException
-from github.ContentFile import ContentFile as GithubContentFile
-from github.Repository import Repository as GithubRepository
-import requests
-from config import Config, OrgConfig, UserConfig  # type: ignore
 
+import github
+import requests
+from github import Github as GithubClient
+from github.ContentFile import ContentFile as GithubContentFile
+from github.GithubException import GithubException
+from github.Repository import Repository as GithubRepository
+
+from config import Config, OrgConfig, UserConfig  # type: ignore
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import ANALYSER_TYPE, get_language_analysers
 from utils import logger, respect_rate_limit

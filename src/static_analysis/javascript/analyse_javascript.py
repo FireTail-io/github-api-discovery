@@ -1,11 +1,11 @@
 from tree_sitter import Language, Parser, Tree
-from static_analysis.javascript.analyse_express import analyse_express
 
+from static_analysis.javascript.analyse_express import analyse_express
 from static_analysis.javascript.utils import (
-    get_identifiers_from_variable_declarator_or_assignment_expression, get_module_name_from_import_statement,
-    get_module_name_from_require_args, is_variable_declarator_or_assignment_expression_calling_func,
-    traverse_tree_depth_first
-)
+    get_identifiers_from_variable_declarator_or_assignment_expression,
+    get_module_name_from_import_statement, get_module_name_from_require_args,
+    is_variable_declarator_or_assignment_expression_calling_func,
+    traverse_tree_depth_first)
 
 JS_LANGUAGE = Language('/analysers/tree-sitter/languages.so', 'javascript')
 

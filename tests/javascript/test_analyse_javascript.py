@@ -1,7 +1,9 @@
 import pytest
 import yaml
 
-from static_analysis.javascript.analyse_javascript import JS_PARSER, analyse_javascript, get_imports
+from static_analysis.javascript.analyse_javascript import (JS_PARSER,
+                                                           analyse_javascript,
+                                                           get_imports)
 
 
 @pytest.mark.parametrize(

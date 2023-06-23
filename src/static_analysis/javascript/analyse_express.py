@@ -5,8 +5,8 @@ from static_analysis.javascript.utils import (
     get_identifiers_from_variable_declarator_or_assignment_expression,
     get_module_name_from_import_statement, get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func,
-    is_variable_declarator_or_assignment_expression_calling_func_member, traverse_tree_depth_first
-)
+    is_variable_declarator_or_assignment_expression_calling_func_member,
+    traverse_tree_depth_first)
 
 
 def get_express_identifiers(tree: Tree) -> set[str]:

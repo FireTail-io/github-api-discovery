@@ -1,5 +1,6 @@
 from typing import Generator
-from tree_sitter import Tree, Node
+
+from tree_sitter import Node, Tree
 
 
 def get_children_of_type(node: Node, type: str) -> list[Node]:
