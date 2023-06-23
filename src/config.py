@@ -1,52 +1,51 @@
+from abc import ABC
 from dataclasses import dataclass, field
 from github.Repository import Repository as GithubRepository
 
 
-@dataclass
-class OrgConfig:
+class AccountConfig(ABC):
     skip_public_repositories: bool = False
-    skip_internal_repositories: bool = False
     skip_archived_repositories: bool = False
     skip_forks: bool = False
 
     def skip_repo(self, repository: GithubRepository) -> bool:
-        match repository.visibility:
-            case "public":
-                if self.skip_public_repositories:
-                    return True
-            case "internal":
-                if self.skip_internal_repositories:
-                    return True
-
-        if repository.archived and self.skip_archived_repositories:
+        if self.skip_public_repositories and repository.visibility == "public":
             return True
 
-        if repository.fork and self.skip_forks:
+        if self.skip_archived_repositories and repository.archived:
+            return True
+
+        if self.skip_forks and repository.fork:
             return True
 
         return False
 
 
 @dataclass
-class UserConfig:
-    skip_public_repositories: bool = False
-    skip_private_repositories: bool = False
-    skip_archived_repositories: bool = False
-    skip_forks: bool = False
+class OrgConfig(AccountConfig):
+    skip_internal_repositories: bool = False
 
     def skip_repo(self, repository: GithubRepository) -> bool:
-        match repository.visibility:
-            case "public":
-                if self.skip_public_repositories:
-                    return True
-            case "private":
-                if self.skip_private_repositories:
-                    return True
-
-        if repository.archived and self.skip_archived_repositories:
+        super_skip = super().skip_repo(repository)
+        if super_skip:
             return True
 
-        if repository.fork and self.skip_forks:
+        if self.skip_internal_repositories and repository.visibility == "internal":
+            return True
+
+        return False
+
+
+@dataclass
+class UserConfig(AccountConfig):
+    skip_private_repositories: bool = False
+
+    def skip_repo(self, repository: GithubRepository) -> bool:
+        super_skip = super().skip_repo(repository)
+        if super_skip:
+            return True
+
+        if self.skip_private_repositories and repository.visibility == "private":
             return True
 
         return False
