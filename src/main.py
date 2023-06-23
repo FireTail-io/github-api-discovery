@@ -1,9 +1,27 @@
+from dacite import from_dict
+import yaml
+from config import Config
 from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN
 from scanning import scan_with_token
 from utils import logger
 
 
 def main():
+    config_dict = {}
+    try:
+        config_file = open("/config.yml", "r")
+        config_dict = yaml.load(config_file.read(), Loader=yaml.Loader)
+        config_file.close()
+    except FileNotFoundError:
+        logger.warn("No config.yml file found.")
+    except yaml.YAMLError as yaml_exception:
+        logger.warn(f"Failed to load config.yml, exception: {yaml_exception}")
+
+    if config_dict is not None:
+        CONFIG = from_dict(Config, config_dict)
+    else:
+        CONFIG = Config()
+
     required_env_vars = {
         "GITHUB_TOKEN": GITHUB_TOKEN,
         "FIRETAIL_APP_TOKEN": FIRETAIL_APP_TOKEN,
@@ -14,7 +32,7 @@ def main():
             logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
             return
 
-    scan_with_token(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL)
+    scan_with_token(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, CONFIG)
 
 
 main()
