@@ -1,24 +1,23 @@
 # List organisations to scan their repositories
-organisations: # default = []
+organisations: # default []
   example-organisation:
     # Under each org, you can skip public, internal, archived or fork repositories
-    skip_public_repositories: False # default = False
-    skip_internal_repositories: False # default = False
-    skip_archived_repositories: False # default = False
-    skip_forks: False # default = False
+    skip_public_repositories: False # default False
+    skip_internal_repositories: False # default False
+    skip_archived_repositories: False # default False
+    skip_forks: False # default False
 
 # List users to scan their repositories
-users: # default = []
+users: # default []
   example-user:
     # Under each user, you can skip public, private, archived or fork repositories
-    skip_public_repositories: False # default = False
-    skip_private_repositories: False # default = False
-    skip_archived_repositories: False # default = False
-    skip_forks: False # default = False
+    skip_public_repositories: False # default False
+    skip_private_repositories: False # default False
+    skip_archived_repositories: False # default False
+    skip_forks: False # default False
 
 # List individual repositories to include or exclude them explicitly from scanning.
 # Has higher prescedence than scanning via users or orgs.
 repositories: # default []
-  example-user/example-repository: exclude
-  example-organisation/example-repository: include
-  FireTail-io/firetail-go-lib: include
+  example-user/example-repository: exclude # default "exclude"
+  example-organisation/example-repository: include # default "exclude"

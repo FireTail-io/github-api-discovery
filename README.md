@@ -37,12 +37,14 @@ docker run --rm --entrypoint cat firetail-io/github-api-discovery:test-golang co
 
 Running the image requires two environment variables, `GITHUB_TOKEN` and `FIRETAIL_APP_TOKEN`. You can find a full list of environment variables used by the scanner below.
 
-You may run the image using the following docker command:
+The scanner also requires a config file to determine the organisations, users and repositories to scan. You can find an example at [config-example.yml](./config-example.yml). 
+
+Copy [config-example.yml](./config-example.yml) to `config.yml` and adjust it to your use case, then run the image using the following docker command:
 
 ```bash
 export GITHUB_TOKEN=YOUR_GITHUB_TOKEN
 export FIRETAIL_APP_TOKEN=YOUR_FIRETAIL_APP_TOKEN
-docker run --rm -e GITHUB_TOKEN=${GITHUB_TOKEN} -e FIRETAIL_APP_TOKEN=${FIRETAIL_APP_TOKEN} firetail-io/github-api-discovery:latest
+docker run --rm -e GITHUB_TOKEN=${GITHUB_TOKEN} -e FIRETAIL_APP_TOKEN=${FIRETAIL_APP_TOKEN} --mount type=bind,source="$(pwd)"/config.yml,target=/config.yml,readonly firetail-io/github-api-discovery:latest
 ```
 
 | Variable Name        | Description                                                  | Required? | Default                                          |
