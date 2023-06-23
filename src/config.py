@@ -64,23 +64,14 @@ class Config:
                 for organisation, config in self.organisations.items()
             }
         elif type(self.organisations) == list:
-            self.organisations = {
-                organisation: OrgConfig()
-                for organisation in self.organisations
-            }
+            self.organisations = {organisation: OrgConfig() for organisation in self.organisations}
         elif self.organisations is None:
             self.organisations = {}
 
         if type(self.users) == dict:
-            self.users = {
-                user: config if config is not None else UserConfig()
-                for user, config in self.users.items()
-            }
+            self.users = {user: config if config is not None else UserConfig() for user, config in self.users.items()}
         elif type(self.users) == list:
-            self.users = {
-                user: UserConfig()
-                for user in self.users
-            }
+            self.users = {user: UserConfig() for user in self.users}
         elif self.users is None:
             self.users = {}
 
