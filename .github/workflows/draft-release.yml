@@ -43,4 +43,6 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG" >> $GITHUB_OUTPUT
