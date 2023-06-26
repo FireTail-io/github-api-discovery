@@ -1,0 +1,46 @@
+name: Draft Release On Push To Main And Push Prerelease Image To ECR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: eu-west-1
+  ECR_REGISTRY: 247286868737.dkr.ecr.eu-west-1.amazonaws.com
+  ECR_REPOSITORY: firetail-github-scanner
+      
+jobs:
+  draft-release:
+    name: Draft Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Draft Release
+        id: draft_release
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
+
+      - name: Build, tag, and push prerelease image to Amazon ECR
+        id: build-image
+        env:
+          PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG" >> $GITHUB_OUTPUT
