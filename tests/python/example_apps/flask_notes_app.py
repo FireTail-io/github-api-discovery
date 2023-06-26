@@ -9,8 +9,7 @@ import os
 import sys
 
 import click
-from flask import Flask
-from flask import redirect, url_for, abort, render_template, flash
+from flask import Flask, abort, flash, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, TextAreaField

@@ -6,3 +6,4 @@ __pycache__
 *.h
 coverage.out
 .venv
+config.yml

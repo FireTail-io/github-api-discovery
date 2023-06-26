@@ -3,12 +3,8 @@ import pytest
 import yaml
 
 from static_analysis.javascript.analyse_express import (
-    analyse_express,
-    get_app_identifiers,
-    get_express_identifiers,
-    get_paths_and_methods,
-    get_router_identifiers,
-)
+    analyse_express, get_app_identifiers, get_express_identifiers,
+    get_paths_and_methods, get_router_identifiers)
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
 
