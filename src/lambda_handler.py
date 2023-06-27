@@ -10,7 +10,11 @@ def handler(event, context):
     repositories_scanned, openapi_specs_discovered = scan()
     scan_duration = time.time() - start_time
 
-    logger.info(f"scan() returned in {round(scan_duration, ndigits=3)} second(s)")
+    logger.info(
+        f"Scanned {repositories_scanned} repositories. "
+        f"{openapi_specs_discovered} OpenAPI spec(s) discovered. "
+        f"Scan took {round(scan_duration, ndigits=3)} second(s)"
+    )
 
     return {
         "message": "Scan complete",
