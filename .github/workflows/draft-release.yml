@@ -41,7 +41,7 @@ jobs:
         env:
           PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG . --target runtime
+          docker build --target runtime -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG -f build_setup/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
