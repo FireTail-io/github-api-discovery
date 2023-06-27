@@ -11,7 +11,7 @@ jobs:
   run-tests-in-docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
         with:
           fetch-depth: 2
 
@@ -20,7 +20,7 @@ jobs:
             DOCKER_BUILDKIT=1 docker build --target test-golang -t test-golang -f build_setup/Dockerfile .
             docker run --rm --entrypoint cat test-golang coverage.out > golang-coverage.out
             docker run --rm --entrypoint cat test-golang coverage.html > golang-coverage.html
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
         with:
             name: golang-coverage
             path: golang-coverage.*
@@ -29,7 +29,7 @@ jobs:
         run: |
           DOCKER_BUILDKIT=1 docker build --target test-python -t test-python -f build_setup/Dockerfile .
           docker run --rm --entrypoint cat test-python coverage.xml > python-coverage.xml
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
         with:
           name: python-coverage.xml
           path: python-coverage.xml
@@ -43,7 +43,7 @@ jobs:
           name: python-lambda-coverage.xml
           path: python-lambda-coverage.xml
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         with:
           files: python-coverage.xml,golang-coverage.out
           flags: unittests
