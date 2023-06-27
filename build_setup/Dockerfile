@@ -33,5 +33,5 @@ COPY tests/ /github-api-discovery/tests/
 RUN pytest --cov /github-api-discovery --cov-report=xml:coverage.xml -vv -x
 
 FROM build-python as runtime
-RUN chmod +x /github-api-discovery/src/main.py
-CMD [ "python", "/github-api-discovery/src/main.py" ]
+RUN chmod +x /github-api-discovery/src/local_handler.py
+CMD [ "python", "/github-api-discovery/src/local_handler.py" ]
