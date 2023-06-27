@@ -6,9 +6,9 @@ on:
       - main
 
 env:
-  AWS_REGION: eu-west-1
-  ECR_REGISTRY: 247286868737.dkr.ecr.eu-west-1.amazonaws.com
-  ECR_REPOSITORY: firetail-github-scanner
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: public.ecr.aws/firetail/
+  ECR_REPOSITORY: github-scanner
       
 jobs:
   draft-release:
@@ -32,15 +32,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
-
-      - name: Build, tag, and push prerelease image to Amazon ECR
-        id: build-image
+      - name: Login to ECR and build, tag & push prerelease images
         env:
           PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
         run: |
+          aws ecr-public get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin public.ecr.aws
           docker build --target runtime -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG -f build_setup/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
