@@ -7,7 +7,7 @@ from scanning import scan_with_token
 from utils import logger
 
 
-def main():
+def scan() -> tuple[int, int]:
     config_dict = {}
     try:
         config_file = open("/config.yml", "r")
@@ -33,7 +33,4 @@ def main():
             logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
             return
 
-    scan_with_token(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, CONFIG)
-
-
-main()
+    return scan_with_token(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, CONFIG)

@@ -108,7 +108,7 @@ def scan_repository_contents(
 
 def scan_repository(
     github_client: GithubClient, repo: GithubRepository, firetail_app_token: str, firetail_api_url: str
-):
+) -> int:
     logger.info(f"{repo.full_name}: Scanning {repo.html_url}")
 
     try:
@@ -116,13 +116,13 @@ def scan_repository(
 
     except github.GithubException as exception:
         logger.warning(f"{repo.full_name}: Failed to scan, exception raised: {exception}")
-        return
+        return 0
 
     logger.info(f"{repo.full_name}: {len(frameworks_identified)} frameworks identified.")
 
     if len(openapi_specs_discovered) == 0:
         logger.info(f"{repo.full_name}: Scan complete. No APIs discovered.")
-        return
+        return 0
 
     logger.info(
         f"{repo.full_name}: Scan complete. {len(openapi_specs_discovered)} OpenAPI API(s) discovered or"
@@ -141,7 +141,7 @@ def scan_repository(
     )
     if create_api_response.status_code != 200:
         logger.critical(f"{repo.full_name}: Failed to create API in SaaS, response: {create_api_response.text}")
-        return
+        return 0
 
     logger.info(
         f"{repo.full_name}: Successfully created/updated API in Firetail SaaS, response:"
@@ -175,6 +175,8 @@ def scan_repository(
             f" {upload_api_spec_response.text}"
         )
 
+    return len(openapi_specs_discovered)
+
 
 def get_repositories_of_user(github_client: GithubClient, username: str, config: UserConfig) -> set[GithubRepository]:
     repositories_to_scan = set()
@@ -207,7 +209,9 @@ def get_repositories_of_organisation(
     return repositories_to_scan
 
 
-def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config) -> None:
+def scan_with_token(
+    github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
+) -> tuple[int, int]:
     github_client = github.Github(github_token)
 
     repositories_to_scan = set()
@@ -256,5 +260,8 @@ def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url
         ", ".join([repo.full_name for repo in repositories_to_scan])
     )
 
+    specs_discovered = 0
     for repo in repositories_to_scan:
-        scan_repository(github_client, repo, firetail_app_token, firetail_api_url)
+        specs_discovered += scan_repository(github_client, repo, firetail_app_token, firetail_api_url)
+
+    return len(repositories_to_scan), specs_discovered
