@@ -36,8 +36,8 @@ jobs:
 
       - name: Run Python Lambda tests in Docker
         run: |
-          DOCKER_BUILDKIT=1 docker build --target test-python-lambda -t test-python -f build_setup/Dockerfile .
-          docker run --rm --entrypoint cat firetail-io/github-api-discovery:latest coverage.xml > python-lambda-coverage.xml
+          DOCKER_BUILDKIT=1 docker build --target test-python-lambda -t test-python-lambda -f build_setup/Dockerfile .
+          docker run --rm --entrypoint cat test-python-lambda coverage.xml > python-lambda-coverage.xml
       - uses: actions/upload-artifact@v3
         with:
           name: python-lambda-coverage.xml
