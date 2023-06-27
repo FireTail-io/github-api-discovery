@@ -45,12 +45,10 @@ RUN python3 -m pip install -r /build_setup/requirements.txt
 COPY src/ ${LAMBDA_TASK_ROOT}
 RUN rm -rf /build_setup
 
-FROM build-python as test-python-lambda
+FROM build-python-lambda as test-python-lambda
 RUN python3 -m pip install pytest pytest-cov
-RUN mkdir ${LAMBDA_TASK_ROOT}/src
-RUN mv ${LAMBDA_TASK_ROOT}/* ${LAMBDA_TASK_ROOT}/src/
-COPY tests/ ${LAMBDA_TASK_ROOT}/tests/
-RUN pytest --cov ${LAMBDA_TASK_ROOT} --cov-report=xml:coverage.xml -vv -x
+COPY tests/ ${LAMBDA_TASK_ROOT}/tests
+RUN PYTHONPATH=${LAMBDA_TASK_ROOT} pytest --cov ${LAMBDA_TASK_ROOT} --cov-report=xml:coverage.xml -vv -x 
 
 FROM build-python-lambda as runtime-lambda
 RUN ls -la ${LAMBDA_TASK_ROOT}
