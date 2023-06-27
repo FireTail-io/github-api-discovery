@@ -40,9 +40,14 @@ jobs:
         id: build-image
         env:
           PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
+          PRERELEASE_LAMBDA_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-lambda-prerelease
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG ./build_setup/Dockerfile --target runtime
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG ./build_setup/Dockerfile --target runtime-lambda
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda-prerelease
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda-prerelease
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG" >> $GITHUB_OUTPUT
