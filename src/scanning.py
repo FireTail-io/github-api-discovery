@@ -1,13 +1,17 @@
 import base64
+from dacite import from_dict
 
 import github
 import requests
 from github import Github as GithubClient
 from github.ContentFile import ContentFile as GithubContentFile
 from github.GithubException import GithubException
+from github.Organization import Organization as GithubOrganisation
 from github.Repository import Repository as GithubRepository
+import yaml
 
-from config import Config, OrgConfig, UserConfig  # type: ignore
+from config import Config, OrgConfig, UserConfig
+from env import FIRETAIL_API_URL, FIRETAIL_APP_TOKEN, GITHUB_TOKEN  # type: ignore
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import ANALYSER_TYPE, get_language_analysers
 from utils import logger, respect_rate_limit
@@ -178,6 +182,25 @@ def scan_repository(
     return len(openapi_specs_discovered)
 
 
+def scan_repositories(
+    github_client: GithubClient,
+    firetail_app_token: str,
+    firetail_api_url: str,
+    repositories_to_scan: set[GithubRepository],
+) -> int:
+    logger.info(
+        f"Attempting to scan {len(repositories_to_scan)} "
+        f"{'repositories' if len(repositories_to_scan) > 1 else 'repository'}: " +
+        ", ".join([repo.full_name for repo in repositories_to_scan])
+    )
+
+    specs_discovered = 0
+    for repo in repositories_to_scan:
+        specs_discovered += scan_repository(github_client, repo, firetail_app_token, firetail_api_url)
+
+    return specs_discovered
+
+
 def get_repositories_of_user(github_client: GithubClient, username: str, config: UserConfig) -> set[GithubRepository]:
     repositories_to_scan = set()
 
@@ -209,7 +232,7 @@ def get_repositories_of_organisation(
     return repositories_to_scan
 
 
-def scan_with_token(
+def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
 ) -> tuple[int, int]:
     github_client = github.Github(github_token)
@@ -252,16 +275,56 @@ def scan_with_token(
 
     if len(repositories_to_scan) == 0:
         logger.info("Could not find any repositories to scan. Check your config file and token's permissions.")
-        return
+        return 0, 0
 
-    logger.info(
-        f"Attempting to scan {len(repositories_to_scan)} "
-        f"{'repositories' if len(repositories_to_scan) > 1 else 'repository'}: " +
-        ", ".join([repo.full_name for repo in repositories_to_scan])
+    return (
+        len(repositories_to_scan),
+        scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
-    specs_discovered = 0
-    for repo in repositories_to_scan:
-        specs_discovered += scan_repository(github_client, repo, firetail_app_token, firetail_api_url)
 
-    return len(repositories_to_scan), specs_discovered
+def scan_without_config(
+    github_token: str, firetail_app_token: str, firetail_api_url: str
+) -> tuple[int, int]:
+    github_client = github.Github(github_token)
+
+    organisations_to_scan: set[GithubOrganisation] = set()
+    for org in github_client.get_user().get_orgs():
+        organisations_to_scan.add(org)
+
+    repositories_to_scan = set()
+    for organisation in organisations_to_scan:
+        logger.info(f"{organisation.login}: Getting repositories...")
+        repositories_to_scan.update(get_repositories_of_organisation(github_client, organisation.login, OrgConfig()))
+
+    return (
+        len(repositories_to_scan),
+        scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
+    )
+
+
+def scan() -> tuple[int, int]:
+    required_env_vars = {
+        "GITHUB_TOKEN": GITHUB_TOKEN,
+        "FIRETAIL_APP_TOKEN": FIRETAIL_APP_TOKEN,
+        "FIRETAIL_API_URL": FIRETAIL_API_URL,
+    }
+    for env_var_name, env_var_value in required_env_vars.items():
+        if env_var_value is None:
+            logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
+            return 0, 0
+
+    config_dict = None
+    try:
+        config_file = open("/config.yml", "r")
+        config_dict = yaml.load(config_file.read(), Loader=yaml.Loader)
+        config_file.close()
+    except FileNotFoundError:
+        logger.warn("No config.yml file found.")
+    except yaml.YAMLError as yaml_exception:
+        logger.warn(f"Failed to load config.yml, exception: {yaml_exception}")
+
+    if config_dict is not None:
+        return scan_with_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict))
+    else:
+        return scan_without_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL)

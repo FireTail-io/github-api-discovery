@@ -1,5 +1,5 @@
 import time
-from scan import scan
+from scanning import scan
 from utils import logger
 
 
