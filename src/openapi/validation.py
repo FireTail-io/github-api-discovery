@@ -16,7 +16,7 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
     )
     try:
         parser.parse()
-    except (prance.ValidationError, ResolutionError):
+    except (prance.ValidationError, ResolutionError, AssertionError):
         # In the future, maybe we can provide some proper details here.
         return None
     return parser.specification
