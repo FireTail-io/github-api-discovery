@@ -25,12 +25,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Production AWS Credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355
         with:
           aws-region: ${{ env.REGION_NAME }}
           role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
-          role-session-name: github-api-discovery-publish-action-prod
+          role-session-name: git-api-discovery-publish-action-draft
 
       - name: Login to ECR and build, tag & push prerelease images
         env:
