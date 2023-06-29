@@ -4,9 +4,6 @@ on:
   release:
     types: [published]
 
-permissions:
-  issues: write
-
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: public.ecr.aws/x7v5r9e4
@@ -21,6 +18,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Get release
