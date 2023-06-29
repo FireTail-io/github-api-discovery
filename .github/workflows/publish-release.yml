@@ -31,7 +31,7 @@ jobs:
       - uses: trstringer/manual-approval@a824dad59ac64ac825ab8725599e483e24aa2815
         with:
           secret: ${{ github.TOKEN }}
-          approvers: rileyfiretail,release-manager
+          approvers: timoruppell,halffinn,rileyfiretail
           minimum-approvals: 1
           issue-title: "Publish ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           issue-body: "Please approve or deny publishing ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}."
