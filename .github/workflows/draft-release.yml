@@ -32,13 +32,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
           role-session-name: github-api-discovery-publish-action-prod
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Login to ECR and build, tag & push prerelease images
         env:
           PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
