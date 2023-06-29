@@ -6,8 +6,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: public.ecr.aws/firetail/
-  ECR_REPOSITORY: github-scanner
+  ECR_REGISTRY: public.ecr.aws/x7v5r9e4
+  ECR_REPOSITORY: firetail-code-repository-scanner
 
 jobs:
   publish-release:
