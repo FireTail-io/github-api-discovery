@@ -25,6 +25,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Configure Production AWS Credentials
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355
+        with:
+          aws-region: ${{ env.REGION_NAME }}
+          role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
+          role-session-name: github-api-discovery-publish-action-prod
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
         with:
