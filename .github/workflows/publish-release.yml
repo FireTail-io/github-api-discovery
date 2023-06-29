@@ -35,7 +35,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355
         with:
-          aws-region: ${{ env.REGION_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
           role-session-name: git-api-discovery-publish-action-prod
 
