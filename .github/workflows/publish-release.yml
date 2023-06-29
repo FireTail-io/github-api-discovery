@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  issues: write
+
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: public.ecr.aws/x7v5r9e4
@@ -20,6 +23,14 @@ jobs:
         uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - uses: trstringer/manual-approval@a824dad59ac64ac825ab8725599e483e24aa2815
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: rileyfiretail,release-manager
+          minimum-approvals: 1
+          issue-title: "Publish ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
+          issue-body: "Please approve or deny publishing ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}."
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
