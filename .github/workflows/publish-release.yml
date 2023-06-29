@@ -1,0 +1,54 @@
+name: Pull Prerelease Image From ECR And Push As Release Image When Draft Release Is Published
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  issues: write
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: public.ecr.aws/x7v5r9e4
+  ECR_REPOSITORY: firetail-code-repository-scanner
+
+jobs:
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - uses: trstringer/manual-approval@a824dad59ac64ac825ab8725599e483e24aa2815
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: rileyfiretail,release-manager
+          minimum-approvals: 1
+          issue-title: "Publish ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
+          issue-body: "Please approve or deny publishing ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}."
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Pull prerelease images from ECR, retag them as a releases, and push them back to ECR with their new tags
+        id: build-image
+        env:
+          PRERELEASE_IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}-prerelease
+          IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}
+        run: |
+          aws ecr-public get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin public.ecr.aws
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
