@@ -4,9 +4,6 @@ on:
   release:
     types: [published]
 
-permissions:
-  issues: write
-
 env:
   AWS_REGION: us-east-1
   ECR_REGISTRY: public.ecr.aws/x7v5r9e4
@@ -15,7 +12,14 @@ env:
 jobs:
   publish-release:
     name: Publish Release
+
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Get release
@@ -27,17 +31,17 @@ jobs:
       - uses: trstringer/manual-approval@a824dad59ac64ac825ab8725599e483e24aa2815
         with:
           secret: ${{ github.TOKEN }}
-          approvers: rileyfiretail,release-manager
+          approvers: timoruppell,halffinn,rileyfiretail
           minimum-approvals: 1
           issue-title: "Publish ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
           issue-body: "Please approve or deny publishing ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}."
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
+          role-session-name: git-api-discovery-publish-action-prod
 
       - name: Pull prerelease images from ECR, retag them as a releases, and push them back to ECR with their new tags
         id: build-image
