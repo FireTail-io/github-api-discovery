@@ -9,7 +9,7 @@ def handler():
     scan_duration = time.time() - start_time
 
     logger.info(
-        f"Scanned {repositories_scanned} repositories. "
+        f"Scanned {len(repositories_scanned)} repositories: {', '.join(repositories_scanned)}. "
         f"{openapi_specs_discovered} OpenAPI spec(s) discovered. "
         f"Scan took {round(scan_duration, ndigits=3)} second(s)"
     )

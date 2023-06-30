@@ -18,7 +18,7 @@ def handler(event, context):
 
     return {
         "message": "Scan complete",
-        "repositories_scanned": repositories_scanned,
+        "repositories_scanned": list(repositories_scanned),
         "openapi_specs_discovered": openapi_specs_discovered,
         "scan_duration": scan_duration
     }

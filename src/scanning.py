@@ -234,7 +234,7 @@ def get_repositories_of_organisation(
 
 def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
-) -> tuple[int, int]:
+) -> tuple[set[str], int]:
     github_client = github.Github(github_token)
 
     repositories_to_scan = set()
@@ -278,7 +278,7 @@ def scan_with_config(
         return 0, 0
 
     return (
-        len(repositories_to_scan),
+        repositories_to_scan,
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
@@ -298,12 +298,12 @@ def scan_without_config(
         repositories_to_scan.update(get_repositories_of_organisation(github_client, organisation.login, OrgConfig()))
 
     return (
-        len(repositories_to_scan),
+        repositories_to_scan,
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
 
-def scan() -> tuple[int, int]:
+def scan() -> tuple[set[str], int]:
     required_env_vars = {
         "GITHUB_TOKEN": GITHUB_TOKEN,
         "FIRETAIL_APP_TOKEN": FIRETAIL_APP_TOKEN,
