@@ -243,7 +243,7 @@ def get_repositories_of_organisation(
 
 def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
-) -> tuple[set[str], int]:
+) -> tuple[set[GithubRepository], int]:
     github_client = github.Github(github_token)
 
     repositories_to_scan = set()
@@ -294,7 +294,7 @@ def scan_with_config(
 
 def scan_without_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str
-) -> tuple[int, int]:
+) -> tuple[set[GithubRepository], int]:
     github_client = github.Github(github_token)
 
     organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(get_organisations_of_user(github_client))
@@ -334,6 +334,12 @@ def scan() -> tuple[set[str], int]:
         logger.warning(f"Failed to load config.yml, exception: {yaml_exception}")
 
     if config_dict is not None:
-        return scan_with_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict))
+        repositories_scanned, openapi_specs_discovered = scan_with_config(
+            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict)
+        )
     else:
-        return scan_without_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL)
+        repositories_scanned, openapi_specs_discovered = scan_without_config(
+            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL
+        )
+
+    return {repository.full_name for repository in repositories_scanned}, openapi_specs_discovered
