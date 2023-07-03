@@ -7,7 +7,7 @@ from static_analysis import analyse_python
 @pytest.fixture(autouse=True)
 def patch_datetime_now(monkeypatch):
     class PatchedDatetime(datetime.datetime):
-        def now():
+        def utcnow():
             return datetime.datetime(2000, 1, 1)
     monkeypatch.setattr(datetime, 'datetime', PatchedDatetime)
 
