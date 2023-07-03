@@ -101,7 +101,7 @@ def scan_repository_contents_recursive(
 def scan_repository_contents(
     github_client: GithubClient, repository: GithubRepository
 ) -> tuple[set[str], dict[str, dict]]:
-    repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
+    repository_languages = list(respect_rate_limit(lambda: repository.get_languages(), github_client).keys())
     logger.info(f"{repository.full_name}: Language(s) detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
@@ -251,14 +251,14 @@ def scan_with_config(
     # Get all of the repos belonging to users in the config
     for user, user_config in config.users.items():
         repositories_to_scan.update(respect_rate_limit(
-            get_repositories_of_user(github_client, user, user_config),
+            lambda: get_repositories_of_user(github_client, user, user_config),
             github_client
         ))
 
     # Get all of the repos beloning to orgs in the config
     for organisation, organisation_config in config.organisations.items():
         repositories_to_scan.update(respect_rate_limit(
-            get_repositories_of_organisation(github_client, organisation, organisation_config),
+            lambda: get_repositories_of_organisation(github_client, organisation, organisation_config),
             github_client
         ))
 
@@ -302,7 +302,7 @@ def scan_without_config(
     github_client = github.Github(github_token)
 
     organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(
-        get_organisations_of_user(github_client),
+        lambda: get_organisations_of_user(github_client),
         github_client
     )
 
@@ -310,7 +310,7 @@ def scan_without_config(
     for organisation in organisations_to_scan:
         logger.info(f"{organisation.login}: Getting repositories...")
         repositories_to_scan.update(respect_rate_limit(
-            get_repositories_of_organisation(github_client, organisation.login, OrgConfig()),
+            lambda: get_repositories_of_organisation(github_client, organisation.login, OrgConfig()),
             github_client
         ))
 
