@@ -209,6 +209,7 @@ def get_repositories_of_organisation(
 
 def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config) -> None:
     github_client = github.Github(github_token)
+    
     repositories_to_scan = set()
 
     # Get all of the repos belonging to users in the config
