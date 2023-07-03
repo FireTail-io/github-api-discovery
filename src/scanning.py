@@ -208,8 +208,11 @@ def get_repositories_of_organisation(
 
 
 def scan_with_token(github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config) -> None:
-    github_client = github.Github(github_token)
-
+    try:
+        github_client = github.Github(github_token)
+    except AssertionError:
+        raise Exception("Github token was not passed, confirm GITHUB_TOKEN is set in the environment")
+    
     repositories_to_scan = set()
 
     # Get all of the repos belonging to users in the config
