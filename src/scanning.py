@@ -291,7 +291,7 @@ def scan_with_config(
         return 0, 0
 
     return (
-        repositories_to_scan,
+        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
@@ -315,7 +315,7 @@ def scan_without_config(
         ))
 
     return (
-        repositories_to_scan,
+        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
@@ -350,4 +350,4 @@ def scan() -> tuple[set[str], int]:
             GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL
         )
 
-    return {repository.full_name for repository in repositories_scanned}, openapi_specs_discovered
+    return repositories_scanned, openapi_specs_discovered
