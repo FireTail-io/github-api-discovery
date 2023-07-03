@@ -222,12 +222,12 @@ def get_repositories_of_organisation(
                 repositories_to_scan.add(repo)
     except GithubException as github_exception:
         if github_exception.status == 403:
-            logger.warn(
+            logger.warning(
                 f"{org_name}: Received a 403 response from GitHub when listing this organisation's repositories. Your"
                 " GitHub token may not have access to this organisation."
             )
         else:
-            logger.warn(f"{org_name}: Received a {github_exception.status} response when listing repos.")
+            logger.warning(f"{org_name}: Received a {github_exception.status} response when listing repos.")
 
     return repositories_to_scan
 
@@ -262,12 +262,12 @@ def scan_with_config(
         except GithubException as github_exception:
             match github_exception.status:
                 case 403:
-                    logger.warn(
+                    logger.warning(
                         f"{repo_name}: Received a 403 response from GitHub when attempting to get this repository. Your"
                         " token may not have access to this repository."
                     )
                 case _:
-                    logger.warn(f"{repo_name}: Received a {github_exception.status} response when getting repo")
+                    logger.warning(f"{repo_name}: Received a {github_exception.status} response when getting repo")
             continue
 
         if repo is not None:
@@ -320,9 +320,9 @@ def scan() -> tuple[set[str], int]:
         config_dict = yaml.load(config_file.read(), Loader=yaml.Loader)
         config_file.close()
     except FileNotFoundError:
-        logger.warn("No config.yml file found.")
+        logger.warning("No config.yml file found.")
     except yaml.YAMLError as yaml_exception:
-        logger.warn(f"Failed to load config.yml, exception: {yaml_exception}")
+        logger.warning(f"Failed to load config.yml, exception: {yaml_exception}")
 
     if config_dict is not None:
         return scan_with_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict))
