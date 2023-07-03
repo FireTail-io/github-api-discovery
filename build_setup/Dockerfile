@@ -33,5 +33,24 @@ COPY tests/ /github-api-discovery/tests/
 RUN pytest --cov /github-api-discovery --cov-report=xml:coverage.xml -vv -x
 
 FROM build-python as runtime
-RUN chmod +x /github-api-discovery/src/main.py
-CMD [ "python", "/github-api-discovery/src/main.py" ]
+RUN chmod +x /github-api-discovery/src/local_handler.py
+CMD [ "python", "/github-api-discovery/src/local_handler.py" ]
+
+FROM public.ecr.aws/lambda/python:3.10 as build-python-lambda
+RUN yum install gcc -y
+COPY --from=build-golang /dist/main.so /analysers/golang/main.so
+COPY --from=build-tree-sitter /dist/languages.so /analysers/tree-sitter/languages.so
+COPY build_setup/requirements.txt /build_setup/requirements.txt
+RUN python3 -m pip install -r /build_setup/requirements.txt
+COPY src/ ${LAMBDA_TASK_ROOT}
+RUN rm -rf /build_setup
+
+FROM build-python-lambda as test-python-lambda
+RUN python3 -m pip install pytest pytest-cov
+COPY tests/ ${LAMBDA_TASK_ROOT}/tests
+RUN PYTHONPATH=${LAMBDA_TASK_ROOT} pytest --cov ${LAMBDA_TASK_ROOT} --cov-report=xml:coverage.xml -vv -x 
+
+FROM build-python-lambda as runtime-lambda
+RUN ls -la ${LAMBDA_TASK_ROOT}
+RUN cat ${LAMBDA_TASK_ROOT}/lambda_handler.py
+CMD [ "lambda_handler.handler" ]

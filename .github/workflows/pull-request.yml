@@ -34,6 +34,15 @@ jobs:
           name: python-coverage.xml
           path: python-coverage.xml
 
+      - name: Run Python Lambda tests in Docker
+        run: |
+          DOCKER_BUILDKIT=1 docker build --target test-python-lambda -t test-python-lambda -f build_setup/Dockerfile .
+          docker run --rm --entrypoint cat test-python-lambda coverage.xml > python-lambda-coverage.xml
+      - uses: actions/upload-artifact@v3
+        with:
+          name: python-lambda-coverage.xml
+          path: python-lambda-coverage.xml
+
       - uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         with:
           files: python-coverage.xml,golang-coverage.out

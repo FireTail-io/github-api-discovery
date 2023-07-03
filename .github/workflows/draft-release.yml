@@ -41,10 +41,16 @@ jobs:
       - name: Login to ECR and build, tag & push prerelease images
         env:
           PRERELEASE_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-prerelease
+          PRERELEASE_LAMBDA_IMAGE_TAG: ${{ steps.draft_release.outputs.tag_name }}-lambda-prerelease
         run: |
           aws ecr-public get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin public.ecr.aws
           docker build --target runtime -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG -f build_setup/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-prerelease
+          docker build --target runtime-lambda -t $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG -f build_setup/Dockerfile .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda-prerelease
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda-prerelease
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG" >> $GITHUB_OUTPUT
