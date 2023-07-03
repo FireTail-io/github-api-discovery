@@ -14,7 +14,7 @@ jobs:
     name: Publish Release
 
     runs-on: ubuntu-latest
-
+    environment: prod
     permissions:
       id-token: write
       contents: write
@@ -27,15 +27,7 @@ jobs:
         uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - uses: trstringer/manual-approval@a824dad59ac64ac825ab8725599e483e24aa2815
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: timoruppell,halffinn,rileyfiretail
-          minimum-approvals: 1
-          issue-title: "Publish ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}"
-          issue-body: "Please approve or deny publishing ${{ steps.get_release.outputs.tag_name }} to ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}."
-
+          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838
         with:
