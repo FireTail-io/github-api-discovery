@@ -15,15 +15,17 @@ RUN python3 -m pip install tree_sitter
 COPY analysers/tree-sitter/build.py build.py
 RUN python3 build.py
 
-FROM python:3.11-bullseye as build-python
+FROM python:3.11-slim-bullseye as build-python
 WORKDIR /github-api-discovery/src
-RUN apt-get update -y && apt-get upgrade -y
+RUN apt-get update -y && apt-get upgrade -y && apt-get install git gcc -y
 COPY --from=build-golang /dist/main.so /analysers/golang/main.so
 COPY --from=build-tree-sitter /dist/languages.so /analysers/tree-sitter/languages.so
 COPY build_setup/requirements.txt /build_setup/requirements.txt
 RUN python3 -m pip install -r /build_setup/requirements.txt
 COPY src/ /github-api-discovery/src
 RUN rm -rf /build_setup
+RUN apt-get remove gcc -y
+
 
 FROM build-python as test-python
 WORKDIR /github-api-discovery
