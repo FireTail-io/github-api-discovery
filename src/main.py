@@ -29,7 +29,7 @@ def main():
         "FIRETAIL_API_URL": FIRETAIL_API_URL,
     }
     for env_var_name, env_var_value in required_env_vars.items():
-        if env_var_value is None:
+        if env_var_value is None or env_var_value == "":
             logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
             return
 
