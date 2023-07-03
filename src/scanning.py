@@ -329,7 +329,7 @@ def scan() -> tuple[set[str], int]:
     for env_var_name, env_var_value in required_env_vars.items():
         if env_var_value in {None, ""}:
             logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
-            return 0, 0
+            return set(), 0
 
     config_dict = None
     try:
