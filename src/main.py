@@ -14,9 +14,9 @@ def main():
         config_dict = yaml.load(config_file.read(), Loader=yaml.Loader)
         config_file.close()
     except FileNotFoundError:
-        logger.warn("No config.yml file found.")
+        logger.warning("No config.yml file found.")
     except yaml.YAMLError as yaml_exception:
-        logger.warn(f"Failed to load config.yml, exception: {yaml_exception}")
+        logger.warning(f"Failed to load config.yml, exception: {yaml_exception}")
 
     if config_dict is not None:
         CONFIG = from_dict(Config, config_dict)
