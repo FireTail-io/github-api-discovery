@@ -121,15 +121,12 @@ def analyse_flask(module: ast.Module) -> dict | None:
     # definition under each of the methods, but it's good enough for now.
     return {
         "openapi": "3.0.0",
-        "info": {
-            "title": "Static Analysis - Flask",
-            "version": get_datestamp()
-        },
+        "info": {"title": "Static Analysis - Flask", "version": get_datestamp()},
         "paths": {
             path: {
-                method: {
-                    "responses": {"default": {"description": "Discovered via static analysis"}}
-                } for method in methods
-            } for path, methods in paths.items()
+                method: {"responses": {"default": {"description": "Discovered via static analysis"}}}
+                for method in methods
+            }
+            for path, methods in paths.items()
         },
     }

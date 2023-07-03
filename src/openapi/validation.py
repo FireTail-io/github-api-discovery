@@ -4,7 +4,6 @@ from typing import Callable
 import prance  # type: ignore
 import yaml
 from prance.util.resolver import RESOLVE_INTERNAL  # type: ignore
-from prance.util.url import ResolutionError
 
 
 def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
@@ -16,7 +15,7 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
     )
     try:
         parser.parse()
-    except (prance.ValidationError, ResolutionError, AssertionError):
+    except:  # noqa: E722
         # In the future, maybe we can provide some proper details here.
         return None
     return parser.specification
@@ -38,6 +37,6 @@ def parse_resolve_and_validate_openapi_spec(file_path: str, get_file_contents: C
 
     else:
         return None
-    
+
     # If it was a valid JSON/YAML file, we can give it to Prance to load
     return resolve_and_validate_openapi_spec(get_file_contents())
