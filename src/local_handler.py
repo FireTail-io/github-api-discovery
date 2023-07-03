@@ -9,7 +9,7 @@ def handler():
     scan_duration = time.time() - start_time
 
     if len(repositories_scanned) == 0:
-        logger.warn(
+        logger.warning(
             f"Scanned 0 repositories. Check your config.yml & access token permissions. "
             f"Scan took {round(scan_duration, ndigits=3)} second(s)"
         )
