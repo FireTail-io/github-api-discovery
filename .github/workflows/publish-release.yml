@@ -16,7 +16,7 @@ jobs:
     environment: prod
 
     runs-on: ubuntu-latest
-
+    environment: prod
     permissions:
       id-token: write
       contents: read
@@ -28,7 +28,6 @@ jobs:
         uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838
         with:

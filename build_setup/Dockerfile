@@ -52,5 +52,4 @@ RUN PYTHONPATH=${LAMBDA_TASK_ROOT} pytest --cov ${LAMBDA_TASK_ROOT} --cov-report
 
 FROM build-python-lambda as runtime-lambda
 RUN ls -la ${LAMBDA_TASK_ROOT}
-RUN cat ${LAMBDA_TASK_ROOT}/lambda_handler.py
 CMD [ "lambda_handler.handler" ]
