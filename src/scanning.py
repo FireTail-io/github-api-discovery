@@ -204,8 +204,8 @@ def scan_repositories(
 def get_organisations_of_user(github_client: GithubClient) -> set[GithubOrganisation]:
     organisations_to_scan = set()
 
-    for repo in github_client.get_user().get_repos():
-        organisations_to_scan.add(repo)
+    for org in github_client.get_user().get_orgs():
+        organisations_to_scan.add(org)
 
     return organisations_to_scan
 
