@@ -201,6 +201,15 @@ def scan_repositories(
     return specs_discovered
 
 
+def get_organisations_of_user(github_client: GithubClient) -> set[GithubOrganisation]:
+    organisations_to_scan = set()
+
+    for repo in github_client.get_user().get_repos():
+        organisations_to_scan.add(repo)
+
+    return organisations_to_scan
+
+
 def get_repositories_of_user(github_client: GithubClient, username: str, config: UserConfig) -> set[GithubRepository]:
     repositories_to_scan = set()
 
@@ -241,13 +250,13 @@ def scan_with_config(
 
     # Get all of the repos belonging to users in the config
     for user, user_config in config.users.items():
-        repositories_to_scan.update(get_repositories_of_user(github_client, user, user_config))
+        repositories_to_scan.update(respect_rate_limit(get_repositories_of_user(github_client, user, user_config)))
 
     # Get all of the repos beloning to orgs in the config
     for organisation, organisation_config in config.organisations.items():
-        repositories_to_scan.update(get_repositories_of_organisation(
+        repositories_to_scan.update(respect_rate_limit(get_repositories_of_organisation(
             github_client, organisation, organisation_config
-        ))
+        )))
 
     # Filter out any repos which have been explicitly excluded
     repositories_to_scan = set(filter(lambda repo: not config.skip_repo(repo), repositories_to_scan))
@@ -288,14 +297,14 @@ def scan_without_config(
 ) -> tuple[int, int]:
     github_client = github.Github(github_token)
 
-    organisations_to_scan: set[GithubOrganisation] = set()
-    for org in github_client.get_user().get_orgs():
-        organisations_to_scan.add(org)
+    organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(get_organisations_of_user(github_client))
 
     repositories_to_scan = set()
     for organisation in organisations_to_scan:
         logger.info(f"{organisation.login}: Getting repositories...")
-        repositories_to_scan.update(get_repositories_of_organisation(github_client, organisation.login, OrgConfig()))
+        repositories_to_scan.update(respect_rate_limit(get_repositories_of_organisation(
+            github_client, organisation.login, OrgConfig()
+        )))
 
     return (
         repositories_to_scan,
