@@ -5,6 +5,7 @@ from typing import Callable, TypeVar
 
 import github
 from github import Github as GithubClient
+import requests
 
 from env import LOGGING_LEVEL
 
@@ -33,3 +34,27 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
                 f"waiting {sleep_duration} second(s)..."
             )
             time.sleep(sleep_duration)
+
+
+def upload_api_spec_to_firetail(
+    source: str, openapi_spec: str, api_uuid: str, firetail_api_url: str, firetail_api_token: str
+):
+    upload_api_spec_response = requests.post(
+        f"{firetail_api_url}/discovery/api-repository/{api_uuid}/appspec",
+        headers={
+            "x-ft-api-key": firetail_api_token,
+            "Content-Type": "application/json",
+        },
+        json={
+            "source": source,
+            "appspec": openapi_spec,
+        },
+    )
+
+    if upload_api_spec_response.status_code not in [201, 304]:
+        raise Exception(f"Failed to send API Spec to FireTail. {upload_api_spec_response.text}")
+
+    logger.info(
+        f"Successfully created/updated {source} API spec in Firetail SaaS, response:"
+        f" {upload_api_spec_response.text}"
+    )
