@@ -1,10 +1,10 @@
 FROM golang:1.20.5-bullseye as build-golang
 COPY ./analysers/golang /src
-RUN go build -buildmode=c-shared -o /dist/main.so /src
+RUN cd /src && go build -buildmode=c-shared -o /dist/main.so
 
 FROM build-golang as test-golang
-RUN go test -coverprofile=coverage.out /src/...
-RUN go tool cover -html coverage.out -o coverage.html
+RUN cd /src && go test -coverprofile=coverage.out ./...
+RUN cd /src && go tool cover -html coverage.out -o coverage.html
 
 FROM python:3.11-bullseye as build-tree-sitter
 RUN apt-get update -y && apt-get upgrade -y
