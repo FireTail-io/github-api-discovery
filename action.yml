@@ -31,4 +31,4 @@ inputs:
     default: "Python,Golang,Javascript"
 runs:
   using: "docker"
-  image: "build_setup/Dockerfile.githubaction"
+  image: "Dockerfile.githubaction"
