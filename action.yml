@@ -18,9 +18,6 @@ inputs:
   API_SPEC_LOCATION:
     description: "Path to your OpenAPI/Swagger spec file"
     required: false
-  API_UUID:
-    description: "UUID of the FireTail API under which to create collections from static analysis results"
-    required: false
   STATIC_ANALYSIS_ROOT_DIR:
     description: "The root directory in your repository to perform static analysis from"
     required: false

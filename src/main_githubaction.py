@@ -8,6 +8,7 @@ from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import LANGUAGE_ANALYSERS
 from utils import (
     GitHubContext,
+    get_api_uuid_from_api_token,
     load_openapi_spec,
     upload_api_spec_to_firetail_collection,
     upload_discovered_api_spec_to_firetail,
@@ -66,11 +67,6 @@ def handler():
 
         logger.info(f"Successfully uploaded OpenAPI spec to Firetail: {API_SPEC_LOCATION}")
 
-    API_UUID = os.environ.get("API_UUID")
-    if API_UUID is None:
-        logger.info("API_UUID is not set, skipping static analysis step.")
-        return
-
     STATIC_ANALYSIS_ROOT_DIR = os.environ.get("STATIC_ANALYSIS_ROOT_DIR", "/")
     STATIC_ANALYSIS_LANGUAGES = map(
         lambda v: v.strip(), os.environ.get("STATIC_ANALYSIS_LANGUAGES", "Python,Golang,Javascript").split(",")
@@ -96,7 +92,7 @@ def handler():
                 upload_discovered_api_spec_to_firetail(
                     source=FULL_PATH,
                     openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
-                    api_uuid=API_UUID,
+                    api_uuid=get_api_uuid_from_api_token(FIRETAIL_API_TOKEN),
                     firetail_api_url=FIRETAIL_API_URL,
                     firetail_api_token=FIRETAIL_API_TOKEN,
                 )
@@ -114,7 +110,7 @@ def handler():
                         upload_discovered_api_spec_to_firetail(
                             source=openapi_spec_source,
                             openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
-                            api_uuid=API_UUID,
+                            api_uuid=get_api_uuid_from_api_token(FIRETAIL_API_TOKEN),
                             firetail_api_url=FIRETAIL_API_URL,
                             firetail_api_token=FIRETAIL_API_TOKEN,
                         )
