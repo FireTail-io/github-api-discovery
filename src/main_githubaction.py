@@ -1,62 +1,18 @@
 # src/get_num_square.py
 import os
 import datetime
-from dataclasses import dataclass, asdict
-import requests
 import time
 import json
 
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import LANGUAGE_ANALYSERS
-from utils import upload_api_spec_to_firetail, logger
-
-
-@dataclass
-class GitHubContext:
-    sha: str
-    repositoryName: str
-    repositoryId: str
-    repositoryOwner: str
-    ref: str
-    headCommitUsername: str
-    actor: str
-    actorId: str
-    workflowRef: str
-    eventName: str
-    private: bool
-    runId: str
-    timeTriggered: int
-    timeTriggeredUTCString: str
-    file_urls: list[str]
-
-
-@dataclass
-class FireTailRequestBody:
-    collection_uuid: str
-    spec_data: dict
-    spec_type: str
-    context: GitHubContext | None = None
-
-
-def get_spec_type(spec_data: dict) -> str:
-    if spec_data.get("openapi", "").startswith("3.1"):
-        return "OAS3.1"
-    if spec_data.get("swagger"):
-        return "SWAGGER2"
-    return "OAS3.0"
-
-
-def load_openapi_spec(api_spec_location: str) -> dict:
-    try:
-        openapi_spec = parse_resolve_and_validate_openapi_spec(
-            api_spec_location, lambda: open(api_spec_location, "r").read()
-        )
-    except FileNotFoundError:
-        raise Exception(f"Could not find OpenAPI spec at {api_spec_location}")
-    if openapi_spec is None:
-        # TODO: a much more helpful error message here
-        raise Exception(f"File at {api_spec_location} is not a valid OpenAPI spec")
-    return openapi_spec
+from utils import (
+    GitHubContext,
+    load_openapi_spec,
+    upload_api_spec_to_firetail_collection,
+    upload_discovered_api_spec_to_firetail,
+    logger,
+)
 
 
 def handler():
@@ -100,20 +56,13 @@ def handler():
 
         OPENAPI_SPEC = load_openapi_spec(API_SPEC_LOCATION)
 
-        FIRETAIL_API_RESPONSE = requests.post(
-            url=f"{FIRETAIL_API_URL}/code_repository/spec",
-            json=asdict(
-                FireTailRequestBody(
-                    collection_uuid=COLLECTION_UUID,
-                    spec_data=OPENAPI_SPEC,
-                    spec_type=get_spec_type(OPENAPI_SPEC),
-                    context=CONTEXT,
-                )
-            ),
-            headers={"x-ft-api-key": FIRETAIL_API_TOKEN},
+        upload_api_spec_to_firetail_collection(
+            openapi_spec=OPENAPI_SPEC,
+            context=CONTEXT,
+            collection_uuid=COLLECTION_UUID,
+            firetail_api_url=FIRETAIL_API_URL,
+            firetail_api_token=FIRETAIL_API_TOKEN,
         )
-        if FIRETAIL_API_RESPONSE.status_code not in {201, 409}:
-            raise Exception(f"Failed to send FireTail API Spec. {FIRETAIL_API_RESPONSE.text}")
 
         logger.info(f"Successfully uploaded OpenAPI spec to Firetail: {API_SPEC_LOCATION}")
 
@@ -144,7 +93,7 @@ def handler():
             OPENAPI_SPEC = parse_resolve_and_validate_openapi_spec(FULL_PATH, lambda: FILE_CONTENTS)
             if OPENAPI_SPEC is not None:
                 logger.info(f"{FULL_PATH}: Detected OpenAPI spec, uploading to Firetail...")
-                upload_api_spec_to_firetail(
+                upload_discovered_api_spec_to_firetail(
                     source=FULL_PATH,
                     openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
                     api_uuid=API_UUID,
@@ -162,7 +111,7 @@ def handler():
 
                     for openapi_spec_source, OPENAPI_SPEC in openapi_specs_from_analysis.items():
                         logger.info(f"{FULL_PATH}: Created OpenAPI spec via {language} static analysis...")
-                        upload_api_spec_to_firetail(
+                        upload_discovered_api_spec_to_firetail(
                             source=openapi_spec_source,
                             openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
                             api_uuid=API_UUID,
