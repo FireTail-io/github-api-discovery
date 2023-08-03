@@ -3,6 +3,7 @@ import datetime
 import logging
 import time
 from typing import Callable, TypeVar
+import uuid
 
 import github
 from github import Github as GithubClient
@@ -44,6 +45,14 @@ class FireTailRequestBody:
     spec_data: dict
     spec_type: str
     context: GitHubContext | None = None
+
+
+def get_api_uuid_from_api_token(api_token: str) -> str:
+    # Using the uuid lib here to make sure it's a valid UUID
+    try:
+        return str(uuid.UUID("-".join(api_token.split("-")[2:7])))
+    except:  # noqa: E722
+        raise Exception("Failed to extract API UUID from API token")
 
 
 def get_spec_type(spec_data: dict) -> str:
