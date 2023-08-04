@@ -91,7 +91,7 @@ def handler():
                 logger.info(f"{FULL_PATH}: Detected OpenAPI spec, uploading to Firetail...")
                 upload_discovered_api_spec_to_firetail(
                     source=FULL_PATH,
-                    openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
+                    openapi_spec=OPENAPI_SPEC,
                     api_uuid=get_api_uuid_from_api_token(FIRETAIL_API_TOKEN),
                     firetail_api_url=FIRETAIL_API_URL,
                     firetail_api_token=FIRETAIL_API_TOKEN,
