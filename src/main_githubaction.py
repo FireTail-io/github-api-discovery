@@ -1,8 +1,8 @@
 # src/get_num_square.py
-import os
 import datetime
-import time
 import json
+import os
+import time
 
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import LANGUAGE_ANALYSERS
@@ -10,9 +10,9 @@ from utils import (
     GitHubContext,
     get_api_uuid_from_api_token,
     load_openapi_spec,
+    logger,
     upload_api_spec_to_firetail_collection,
     upload_discovered_api_spec_to_firetail,
-    logger,
 )
 
 
@@ -109,7 +109,7 @@ def handler():
                         logger.info(f"{FULL_PATH}: Created OpenAPI spec via {language} static analysis...")
                         upload_discovered_api_spec_to_firetail(
                             source=openapi_spec_source,
-                            openapi_spec=json.dumps(OPENAPI_SPEC, indent=2),
+                            openapi_spec=OPENAPI_SPEC,
                             api_uuid=get_api_uuid_from_api_token(FIRETAIL_API_TOKEN),
                             firetail_api_url=FIRETAIL_API_URL,
                             firetail_api_token=FIRETAIL_API_TOKEN,

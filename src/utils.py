@@ -1,13 +1,13 @@
-from dataclasses import asdict, dataclass
 import datetime
 import logging
 import time
-from typing import Callable, TypeVar
 import uuid
+from dataclasses import asdict, dataclass
+from typing import Callable, TypeVar
 
 import github
-from github import Github as GithubClient
 import requests
+from github import Github as GithubClient
 
 from env import LOGGING_LEVEL
 from openapi.validation import parse_resolve_and_validate_openapi_spec
@@ -119,7 +119,7 @@ def upload_api_spec_to_firetail_collection(
 
 
 def upload_discovered_api_spec_to_firetail(
-    source: str, openapi_spec: str, api_uuid: str, firetail_api_url: str, firetail_api_token: str
+    source: str, openapi_spec: dict, api_uuid: str, firetail_api_url: str, firetail_api_token: str
 ):
     upload_api_spec_response = requests.post(
         f"{firetail_api_url}/discovery/api-repository/{api_uuid}/appspec",
