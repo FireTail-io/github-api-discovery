@@ -1,6 +1,6 @@
-PyGithub
-openapi-spec-validator
-pyyaml
-prance
-tree_sitter
-dacite
+openapi-spec-validator==0.6.0
+prance==23.6.21.0
+pyyaml==6.0.1
+dacite==1.8.1
+tree_sitter==0.20.2
+PyGithub==1.59.1
