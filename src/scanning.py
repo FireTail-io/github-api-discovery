@@ -44,7 +44,7 @@ def scan_file(
         openapi_specs_discovered[file_path] = valid_openapi_spec
 
     for language_analyser in language_analysers:
-        frameworks, openapi_spec_from_analysis = language_analyser(file_path, get_file_contents())
+        frameworks, openapi_spec_from_analysis = language_analyser(file_path, get_file_contents)
         frameworks_identified.update(frameworks)
         openapi_specs_discovered = {**openapi_specs_discovered, **openapi_spec_from_analysis}
 

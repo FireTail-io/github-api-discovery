@@ -1,4 +1,5 @@
 import ast
+from typing import Callable
 
 from static_analysis.python.analyse_flask import analyse_flask
 
@@ -17,12 +18,12 @@ def get_imports(module: ast.Module) -> list[str]:
     return imports
 
 
-def analyse_python(file_path: str, file_contents: str) -> tuple[set[str], dict[str, dict]]:
+def analyse_python(file_path: str, get_file_contents: Callable[[], str]) -> tuple[set[str], dict[str, dict]]:
     if not file_path.endswith(".py"):
         return (set(), {})
 
     try:
-        parsed_module = ast.parse(file_contents)
+        parsed_module = ast.parse(get_file_contents())
     except SyntaxError:
         return (set(), {})
 

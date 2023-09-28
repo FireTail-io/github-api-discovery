@@ -1,13 +1,17 @@
+from typing import Callable
+
 from tree_sitter import Language, Parser, Tree
 
 from static_analysis.javascript.analyse_express import analyse_express
 from static_analysis.javascript.utils import (
     get_identifiers_from_variable_declarator_or_assignment_expression,
-    get_module_name_from_import_statement, get_module_name_from_require_args,
+    get_module_name_from_import_statement,
+    get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func,
-    traverse_tree_depth_first)
+    traverse_tree_depth_first,
+)
 
-JS_LANGUAGE = Language('/analysers/tree-sitter/languages.so', 'javascript')
+JS_LANGUAGE = Language("/analysers/tree-sitter/languages.so", "javascript")
 
 JS_PARSER = Parser()
 JS_PARSER.set_language(JS_LANGUAGE)
@@ -26,8 +30,10 @@ def get_imports(tree: Tree) -> set[str]:
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = require("express");'
-                identifiers_assigned_to, last_assignment_expression = \
-                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+                (
+                    identifiers_assigned_to,
+                    last_assignment_expression,
+                ) = get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
                 # If we didn't manage to extract any identifiers then we don't care if require() is involved, because we
                 # don't have any identifiers to add to the set of express_identifiers anyway
@@ -53,12 +59,12 @@ def get_imports(tree: Tree) -> set[str]:
     return imports
 
 
-def analyse_javascript(file_path: str, file_contents: str) -> tuple[set[str], dict[str, dict]]:
+def analyse_javascript(file_path: str, get_file_contents: Callable[[], str]) -> tuple[set[str], dict[str, dict]]:
     if not file_path.endswith(".js"):
         return (set(), {})
 
     try:
-        parsed_module = JS_PARSER.parse(file_contents.encode("utf-8"))
+        parsed_module = JS_PARSER.parse(get_file_contents().encode("utf-8"))
     except SyntaxError:
         return (set(), {})
 
