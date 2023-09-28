@@ -26,7 +26,11 @@ def scan_file(
         encoded_content = respect_rate_limit(lambda: file.content, github_client)
         if encoded_content is None:
             return ""
-        return base64.b64decode(encoded_content)
+
+        try:
+            return base64.b64decode(encoded_content).decode("utf-8")
+        except:  # noqa: E722
+            return ""
 
     openapi_specs_discovered: dict[str, dict] = {}
     frameworks_identified: set[str] = set()
