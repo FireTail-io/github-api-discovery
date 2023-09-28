@@ -8,8 +8,8 @@ ANALYSER_TYPE = Callable[[str, str], tuple[set[str], dict[str, dict[str, dict]]]
 
 LANGUAGE_ANALYSERS: dict[str, list[ANALYSER_TYPE]] = {
     "Python": [analyse_python],
-    "Golang": [analyse_golang],
-    "Javascript": [analyse_javascript],
+    "Go": [analyse_golang],
+    "JavaScript": [analyse_javascript],
 }
 
 
