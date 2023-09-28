@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from github.Repository import Repository as GithubRepository
 
 
+@dataclass
 class AccountConfig(ABC):
     skip_public_repositories: bool = False
     skip_archived_repositories: bool = False
