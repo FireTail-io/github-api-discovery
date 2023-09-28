@@ -1,5 +1,6 @@
 import base64
 import json
+from functools import cache
 
 import github
 import requests
@@ -23,6 +24,7 @@ def scan_file(
 ) -> tuple[set[str], dict[str, dict]]:
     file_path = respect_rate_limit(lambda: file.path, github_client)
 
+    @cache
     def get_file_contents():
         encoded_content = respect_rate_limit(lambda: file.content, github_client)
         if encoded_content is None:
