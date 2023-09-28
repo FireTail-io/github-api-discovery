@@ -24,21 +24,6 @@ class AccountConfig(ABC):
 
 
 @dataclass
-class OrgConfig(AccountConfig):
-    skip_internal_repositories: bool = False
-
-    def skip_repo(self, repository: GithubRepository) -> bool:
-        super_skip = super().skip_repo(repository)
-        if super_skip:
-            return True
-
-        if self.skip_internal_repositories and repository.visibility == "internal":
-            return True
-
-        return False
-
-
-@dataclass
 class UserConfig(AccountConfig):
     skip_private_repositories: bool = False
 
@@ -54,9 +39,24 @@ class UserConfig(AccountConfig):
 
 
 @dataclass
+class OrgConfig(UserConfig):
+    skip_internal_repositories: bool = False
+
+    def skip_repo(self, repository: GithubRepository) -> bool:
+        super_skip = super().skip_repo(repository)
+        if super_skip:
+            return True
+
+        if self.skip_internal_repositories and repository.visibility == "internal":
+            return True
+
+        return False
+
+
+@dataclass
 class Config:
-    organisations: dict[str, OrgConfig | None] | list[str] | None = field(default_factory=dict[str, OrgConfig])
-    users: dict[str, UserConfig | None] | list[str] | None = field(default_factory=dict[str, UserConfig])
+    organisations: dict[str, OrgConfig | None] | list[str] | None = field(default_factory=dict[str, OrgConfig | None])
+    users: dict[str, UserConfig | None] | list[str] | None = field(default_factory=dict[str, UserConfig | None])
     repositories: dict[str, str] | None = field(default_factory=dict)
 
     def __post_init__(self):

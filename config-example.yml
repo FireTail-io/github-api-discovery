@@ -1,8 +1,9 @@
 # List organisations to scan their repositories
 organisations: # default []
   example-organisation:
-    # Under each org, you can skip public, internal, archived or fork repositories
+    # Under each org, you can skip public, private, internal, archived or fork repositories
     skip_public_repositories: False # default False
+    skip_private_repositories: False # default False
     skip_internal_repositories: False # default False
     skip_archived_repositories: False # default False
     skip_forks: False # default False
