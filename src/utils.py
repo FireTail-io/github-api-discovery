@@ -27,5 +27,9 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
 
         except github.RateLimitExceededException:
             sleep_duration = (github_client.get_rate_limit().core.reset - datetime.datetime.utcnow()).seconds
-            logger.warning(f"Rate limited calling {func}, waiting {sleep_duration} second(s)")
+            logger.warning(
+                f"Rate limited calling {func}, core rate limit resets at "
+                f"{github_client.get_rate_limit().core.reset.astimezone(datetime.timezone.utc).isoformat()}, "
+                f"waiting {sleep_duration} second(s)..."
+            )
             time.sleep(sleep_duration)
