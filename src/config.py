@@ -81,4 +81,7 @@ class Config:
             self.repositories = {}
 
     def skip_repo(self, repository: GithubRepository) -> bool:
-        return self.repositories.get(repository.full_name) != "include"
+        if self.repositories is None:
+            return False
+
+        return self.repositories.get(repository.full_name) == "exclude"

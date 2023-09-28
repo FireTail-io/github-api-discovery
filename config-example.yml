@@ -19,5 +19,5 @@ users: # default []
 # List individual repositories to include or exclude them explicitly from scanning.
 # Has higher prescedence than scanning via users or orgs.
 repositories: # default []
-  example-user/example-repository: exclude # default "exclude"
-  example-organisation/example-repository: include # default "exclude"
+  example-user/example-repository: exclude
+  example-organisation/example-repository: include
