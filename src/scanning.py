@@ -57,24 +57,6 @@ def scan_repository_contents_recursive(
     frameworks_identified: set[str] = set()
     openapi_specs_discovered: dict[str, dict] = {}
 
-    IGNORED_FILE_PATH_PREFIXES = (
-        ".github",
-        "__test",
-        "test",
-        "tests",
-        ".env",
-        "node_modules/",
-        "example",
-        ".pytest_cache/",
-        ".coverage",
-    )
-    if path.startswith(IGNORED_FILE_PATH_PREFIXES):
-        return set(), {}
-
-    IGNORED_FILE_PATH_SUBSTRINGS = ["test/"]
-    if any([ignored_file_path in path for ignored_file_path in IGNORED_FILE_PATH_SUBSTRINGS]):
-        return set(), {}
-
     repository_contents = respect_rate_limit(lambda: repository.get_contents(path), github_client)
     if not isinstance(repository_contents, list):
         repository_contents = [repository_contents]
