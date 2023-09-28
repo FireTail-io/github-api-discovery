@@ -147,10 +147,13 @@ def scan_repository(
                 "x-ft-app-key": firetail_app_token,
                 "Content-Type": "application/json",
             },
-            json={
-                "source": source,
-                "appspec": openapi_spec,
-            },
+            data=json.dumps(
+                {
+                    "source": source,
+                    "appspec": openapi_spec,
+                },
+                default=str,
+            ),
         )
 
         if upload_api_spec_response.status_code not in [201, 304]:
