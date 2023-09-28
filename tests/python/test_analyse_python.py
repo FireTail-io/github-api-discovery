@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 
 from static_analysis import analyse_python
@@ -53,7 +54,7 @@ def hello_world():
 def test_analyse_flask_hello_world(test_file_contents):
     file_path = "tests/python/example_apps/flask_hello_world.py"
 
-    detected_frameworks, appspecs = analyse_python(file_path, test_file_contents)
+    detected_frameworks, appspecs = analyse_python(file_path, lambda: test_file_contents)
 
     assert detected_frameworks == {"flask"}
     assert appspecs == {
@@ -69,7 +70,7 @@ def test_analyse_flask_notes_app():
     file_path = "tests/python/example_apps/flask_notes_app.py"
     file_contents = open(file_path, "r").read()
 
-    detected_frameworks, appspecs = analyse_python(file_path, file_contents)
+    detected_frameworks, appspecs = analyse_python(file_path, lambda: file_contents)
 
     assert detected_frameworks == {"flask"}
     assert appspecs == {
