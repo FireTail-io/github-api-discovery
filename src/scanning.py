@@ -232,7 +232,7 @@ def get_repositories_of_organisation(
 
 def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
-) -> tuple[set[GithubRepository], int]:
+) -> tuple[set[str], int]:
     github_client = github.Github(github_token)
 
     repositories_to_scan = set()
@@ -285,9 +285,7 @@ def scan_with_config(
     )
 
 
-def scan_without_config(
-    github_token: str, firetail_app_token: str, firetail_api_url: str
-) -> tuple[set[GithubRepository], int]:
+def scan_without_config(github_token: str, firetail_app_token: str, firetail_api_url: str) -> tuple[set[str], int]:
     github_client = github.Github(github_token)
 
     organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(
