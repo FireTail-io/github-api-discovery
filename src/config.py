@@ -67,21 +67,11 @@ class Config:
             }
         elif type(self.organisations) == list:
             self.organisations = {organisation: OrgConfig() for organisation in self.organisations}
-        elif self.organisations is None:
-            self.organisations = {}
 
         if type(self.users) == dict:
             self.users = {user: config if config is not None else UserConfig() for user, config in self.users.items()}
         elif type(self.users) == list:
             self.users = {user: UserConfig() for user in self.users}
-        elif self.users is None:
-            self.users = {}
-
-        if self.repositories is None:
-            self.repositories = {}
 
     def skip_repo(self, repository: GithubRepository) -> bool:
-        if self.repositories is None:
-            return False
-
         return self.repositories.get(repository.full_name) == "exclude"
