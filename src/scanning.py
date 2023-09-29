@@ -2,7 +2,6 @@ import base64
 import json
 from functools import cache
 
-import github
 import requests
 import yaml
 from dacite import from_dict
@@ -75,7 +74,7 @@ def scan_repository_contents_recursive(
                 new_frameworks_identified, new_openapi_specs_discovered = scan_file(
                     file, github_client, language_analysers
                 )
-            except github.GithubException as exception:
+            except GithubException as exception:
                 logger.warning(
                     f"Failed to scan file {file.path} from {repository.full_name}, exception raised: {exception}"
                 )
@@ -107,7 +106,7 @@ def scan_repository(
     try:
         frameworks_identified, openapi_specs_discovered = scan_repository_contents(github_client, repo)
 
-    except github.GithubException as exception:
+    except GithubException as exception:
         logger.warning(f"{repo.full_name}: Failed to scan, exception raised: {exception}")
         return 0
 
@@ -235,7 +234,7 @@ def get_repositories_of_organisation(
 def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
 ) -> tuple[set[str], int]:
-    github_client = github.Github(github_token)
+    github_client = GithubClient(github_token)
 
     repositories_to_scan = set()
 
@@ -293,7 +292,7 @@ def scan_with_config(
 
 
 def scan_without_config(github_token: str, firetail_app_token: str, firetail_api_url: str) -> tuple[set[str], int]:
-    github_client = github.Github(github_token)
+    github_client = GithubClient(github_token)
 
     organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(
         lambda: get_organisations_of_user(github_client), github_client
