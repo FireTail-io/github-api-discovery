@@ -231,27 +231,23 @@ def get_repositories_of_organisation(
     return repositories_to_scan
 
 
-def scan_with_config(
-    github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
-) -> tuple[set[str], int]:
-    github_client = GithubClient(github_token)
-
+def get_repos_to_scan_with_config(github_client: GithubClient, config: Config) -> set[GithubRepository]:
     repositories_to_scan = set()
 
     # Get all of the repos belonging to users in the config
-    for user, user_config in config.users.items():  # type: ignore
+    for user_name, user_config in config.users.items():  # type: ignore
         repositories_to_scan.update(
             respect_rate_limit(
-                lambda: get_repositories_of_user(github_client, user, user_config), github_client  # type: ignore
+                lambda: get_repositories_of_user(github_client, user_name, user_config), github_client  # type: ignore
             )
         )
 
     # Get all of the repos beloning to orgs in the config
-    for organisation, organisation_config in config.organisations.items():  # type: ignore
+    for organisation_name, organisation_config in config.organisations.items():  # type: ignore
         repositories_to_scan.update(
             respect_rate_limit(
                 lambda: get_repositories_of_organisation(
-                    github_client, organisation, organisation_config  # type: ignore
+                    github_client, organisation_name, organisation_config  # type: ignore
                 ),
                 github_client,
             )
@@ -281,19 +277,10 @@ def scan_with_config(
         if repo is not None:
             repositories_to_scan.add(repo)
 
-    if len(repositories_to_scan) == 0:
-        logger.info("Could not find any repositories to scan. Check your config file and token's permissions.")
-        return set(), 0
-
-    return (
-        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
-        scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan),
-    )
+    return repositories_to_scan
 
 
-def scan_without_config(github_token: str, firetail_app_token: str, firetail_api_url: str) -> tuple[set[str], int]:
-    github_client = GithubClient(github_token)
-
+def get_repos_to_scan_without_config(github_client: GithubClient) -> set[GithubRepository]:
     organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(
         lambda: get_organisations_of_user(github_client), github_client
     )
@@ -307,10 +294,7 @@ def scan_without_config(github_token: str, firetail_app_token: str, firetail_api
             )
         )
 
-    return (
-        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
-        scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan),
-    )
+    return repositories_to_scan
 
 
 def scan() -> tuple[set[str], int]:
@@ -334,13 +318,18 @@ def scan() -> tuple[set[str], int]:
     except yaml.YAMLError as yaml_exception:
         logger.warning(f"Failed to load config.yml, exception: {yaml_exception}")
 
-    if config_dict is not None:
-        repositories_scanned, openapi_specs_discovered = scan_with_config(
-            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict)  # type: ignore
-        )
-    else:
-        repositories_scanned, openapi_specs_discovered = scan_without_config(
-            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL  # type: ignore
-        )
+    github_client = GithubClient(GITHUB_TOKEN)
 
-    return repositories_scanned, openapi_specs_discovered
+    if config_dict is not None:
+        repositories_to_scan = get_repos_to_scan_with_config(github_client, from_dict(Config, config_dict))
+    else:
+        repositories_to_scan = get_repos_to_scan_without_config(github_client)
+
+    if len(repositories_to_scan) == 0:
+        logger.info("Could not find any repositories to scan. Check your config file and token's permissions.")
+        return set(), 0
+
+    return (
+        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
+        scan_repositories(github_client, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, repositories_to_scan),  # type: ignore
+    )
