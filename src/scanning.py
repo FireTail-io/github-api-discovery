@@ -101,7 +101,7 @@ def scan_repository_contents_recursive(
 def scan_repository_contents(
     github_client: GithubClient, repository: GithubRepository
 ) -> tuple[set[str], dict[str, dict]]:
-    repository_languages = list(respect_rate_limit(repository.get_languages, github_client).keys())
+    repository_languages = list(respect_rate_limit(lambda: repository.get_languages(), github_client).keys())
     logger.info(f"{repository.full_name}: Language(s) detected: {', '.join(repository_languages)}")
 
     language_analysers = get_language_analysers(repository_languages)
@@ -201,6 +201,15 @@ def scan_repositories(
     return specs_discovered
 
 
+def get_organisations_of_user(github_client: GithubClient) -> set[GithubOrganisation]:
+    organisations_to_scan = set()
+
+    for org in github_client.get_user().get_orgs():
+        organisations_to_scan.add(org)
+
+    return organisations_to_scan
+
+
 def get_repositories_of_user(github_client: GithubClient, username: str, config: UserConfig) -> set[GithubRepository]:
     repositories_to_scan = set()
 
@@ -234,19 +243,23 @@ def get_repositories_of_organisation(
 
 def scan_with_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str, config: Config
-) -> tuple[set[str], int]:
+) -> tuple[set[GithubRepository], int]:
     github_client = github.Github(github_token)
 
     repositories_to_scan = set()
 
     # Get all of the repos belonging to users in the config
     for user, user_config in config.users.items():
-        repositories_to_scan.update(get_repositories_of_user(github_client, user, user_config))
+        repositories_to_scan.update(respect_rate_limit(
+            lambda: get_repositories_of_user(github_client, user, user_config),
+            github_client
+        ))
 
     # Get all of the repos beloning to orgs in the config
     for organisation, organisation_config in config.organisations.items():
-        repositories_to_scan.update(get_repositories_of_organisation(
-            github_client, organisation, organisation_config
+        repositories_to_scan.update(respect_rate_limit(
+            lambda: get_repositories_of_organisation(github_client, organisation, organisation_config),
+            github_client
         ))
 
     # Filter out any repos which have been explicitly excluded
@@ -278,27 +291,31 @@ def scan_with_config(
         return 0, 0
 
     return (
-        repositories_to_scan,
+        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
 
 def scan_without_config(
     github_token: str, firetail_app_token: str, firetail_api_url: str
-) -> tuple[int, int]:
+) -> tuple[set[GithubRepository], int]:
     github_client = github.Github(github_token)
 
-    organisations_to_scan: set[GithubOrganisation] = set()
-    for org in github_client.get_user().get_orgs():
-        organisations_to_scan.add(org)
+    organisations_to_scan: set[GithubOrganisation] = respect_rate_limit(
+        lambda: get_organisations_of_user(github_client),
+        github_client
+    )
 
     repositories_to_scan = set()
     for organisation in organisations_to_scan:
         logger.info(f"{organisation.login}: Getting repositories...")
-        repositories_to_scan.update(get_repositories_of_organisation(github_client, organisation.login, OrgConfig()))
+        repositories_to_scan.update(respect_rate_limit(
+            lambda: get_repositories_of_organisation(github_client, organisation.login, OrgConfig()),
+            github_client
+        ))
 
     return (
-        repositories_to_scan,
+        {respect_rate_limit(lambda: repository.full_name, github_client) for repository in repositories_to_scan},
         scan_repositories(github_client, firetail_app_token, firetail_api_url, repositories_to_scan)
     )
 
@@ -312,7 +329,7 @@ def scan() -> tuple[set[str], int]:
     for env_var_name, env_var_value in required_env_vars.items():
         if env_var_value in {None, ""}:
             logger.critical(f"{env_var_name} not set in environment. Cannot scan.")
-            return 0, 0
+            return set(), 0
 
     config_dict = None
     try:
@@ -325,6 +342,12 @@ def scan() -> tuple[set[str], int]:
         logger.warning(f"Failed to load config.yml, exception: {yaml_exception}")
 
     if config_dict is not None:
-        return scan_with_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict))
+        repositories_scanned, openapi_specs_discovered = scan_with_config(
+            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL, from_dict(Config, config_dict)
+        )
     else:
-        return scan_without_config(GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL)
+        repositories_scanned, openapi_specs_discovered = scan_without_config(
+            GITHUB_TOKEN, FIRETAIL_APP_TOKEN, FIRETAIL_API_URL
+        )
+
+    return repositories_scanned, openapi_specs_discovered

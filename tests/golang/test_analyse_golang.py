@@ -13,9 +13,7 @@ def test_analyse_net_http_hello_world():
             "openapi": "3.0.0",
             "info": {"title": "Static Analysis - Golang net/http"},
             "paths": {
-                "/hello": {
-                    "responses": {"default": {"description": "Discovered via static analysis"}}
-                },
+                "/hello": {"responses": {"default": {"description": "Discovered via static analysis"}}},
             },
         }
     }
