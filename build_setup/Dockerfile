@@ -49,6 +49,8 @@ RUN rm -rf /build_setup
 
 FROM build-python-lambda as test-python-lambda
 RUN python3 -m pip install pytest pytest-cov
+COPY tests/requirements.txt /github-api-discovery/tests/requirements.txt
+RUN python3 -m pip install -r /github-api-discovery/tests/requirements.txt
 COPY tests/ ${LAMBDA_TASK_ROOT}/tests
 RUN PYTHONPATH=${LAMBDA_TASK_ROOT} pytest --cov ${LAMBDA_TASK_ROOT} --cov-report=xml:coverage.xml -vv -x 
 
