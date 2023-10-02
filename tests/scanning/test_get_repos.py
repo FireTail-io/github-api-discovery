@@ -5,7 +5,6 @@ from _consts import (
     ALL_MOCK_REPOS,
     ALL_ORG_FLAGS,
     ALL_USER_FLAGS,
-    MOCK_ORGANISATION,
     MOCK_REPOSITORY_ARCHIVED,
     MOCK_REPOSITORY_FORK,
     MOCK_REPOSITORY_INTERNAL,
@@ -29,13 +28,35 @@ from scanning import (
 
 
 @pytest.mark.parametrize("org_repos", powerset(ALL_MOCK_REPOS))
-@patch("scanning.get_organisations_of_user", return_value={MOCK_ORGANISATION})  # type: ignore
-@patch("scanning.get_repositories_of_organisation", return_value=set())
-def test_get_repos_to_scan_without_config(get_repositories_of_organisation_patch, _, org_repos):
-    get_repositories_of_organisation_patch.return_value = org_repos
+def test_get_repos_to_scan_without_config(org_repos):
+    class PatchedGithubOrganisation(GithubOrganisation):
+        def get_repos(*_):
+            return org_repos
+
+    PATCHED_ORGANISATION = PatchedGithubOrganisation(
+        requester=None,  # type: ignore
+        headers={},
+        attributes={"url": "PATCHED_GITHUB_ORGANISATION_URL"},
+        completed=True,
+    )
+
+    class PatchedGithubUser(GithubUser):
+        def __init__(self):
+            pass
+
+        def get_orgs(*_):
+            return [PATCHED_ORGANISATION]
+
+    class PatchedGithubClient(GithubClient):
+        def get_user(self):
+            return PatchedGithubUser()
+
+        def get_organization(*_):
+            return PATCHED_ORGANISATION
+
     # The expected behavious is that the scanner should get all of the orgs the user belongs to, and then all of the
     # repos belonging to those orgs.
-    repos_to_scan = get_repos_to_scan_without_config(None)  # type: ignore
+    repos_to_scan = get_repos_to_scan_without_config(PatchedGithubClient())  # type: ignore
 
     assert repos_to_scan == set(org_repos)
 
