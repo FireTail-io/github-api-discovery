@@ -29,6 +29,8 @@ FROM build-python as test-python
 WORKDIR /github-api-discovery
 COPY setup.cfg /github-api-discovery/setup.cfg
 RUN python3 -m pip install pytest pytest-cov
+COPY tests/requirements.txt /github-api-discovery/tests/requirements.txt
+RUN python3 -m pip install -r /github-api-discovery/tests/requirements.txt
 COPY tests/ /github-api-discovery/tests/
 RUN pytest --cov /github-api-discovery --cov-report=xml:coverage.xml -vv -x
 

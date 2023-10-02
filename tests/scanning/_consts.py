@@ -1,3 +1,5 @@
+import base64
+
 from github.Organization import Organization as GithubOrganisation
 from github.Repository import Repository as GithubRepository
 
@@ -55,3 +57,55 @@ ALL_MOCK_REPOS = {
     MOCK_REPOSITORY_PRIVATE,  # type: ignore
     MOCK_REPOSITORY_INTERNAL,  # type: ignore
 }
+
+MOCK_FLASK_MAIN_PY_B64 = base64.b64encode(
+    """from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def hello_world():
+    return "<p>Hello, World!</p>"
+""".encode(
+        "utf-8"
+    )
+).decode()
+
+MOCK_APPSPEC_YAML_B64 = base64.b64encode(
+    """info:
+  title: Static Analysis - Flask
+  version: '2000-01-01 00:00:00'
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      responses:
+        default:
+          description: Discovered via static analysis""".encode(
+        "utf-8"
+    )
+).decode()
+
+
+MOCK_APPSPEC_JSON_B64 = base64.b64encode(
+    """{
+  "info": {
+    "title": "Static Analysis - Flask",
+    "version": "2000-01-01 00:00:00"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": "Discovered via static analysis"
+          }
+        }
+      }
+    }
+  }
+}""".encode(
+        "utf-8"
+    )
+).decode()
