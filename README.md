@@ -37,6 +37,8 @@ docker run --rm --entrypoint cat firetail-io/github-api-discovery:test-golang co
 
 Running the image requires two environment variables, `GITHUB_TOKEN` and `FIRETAIL_APP_TOKEN`. You can find a full list of environment variables used by the scanner below.
 
+You can configure the region of the Firetail SaaS the scanner image reports to by setting the `FIRETAIl_API_URL` environment variable appropriately. For example, to report to the US region the appropriate value would be `https://api.saas.us-east-2.prod.firetail.app`.
+
 The scanner also requires a config file to determine the organisations, users and repositories to scan. You can find an example at [config-example.yml](./config-example.yml). 
 
 Copy [config-example.yml](./config-example.yml) to `config.yml` and adjust it to your use case, then run the image using the following docker command:
