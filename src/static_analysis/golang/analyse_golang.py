@@ -10,11 +10,11 @@ GOLANG_ANALYSER.argtypes = [ctypes.c_char_p, ctypes.c_char_p]  # type: ignore
 GOLANG_ANALYSER.restype = ctypes.c_void_p  # type: ignore
 
 
-def analyse_golang(file_path: str, file_contents: str) -> tuple[set[str], dict[str, dict]]:
+def analyse_golang(file_path: str, get_file_contents: Callable[[], str]) -> tuple[set[str], dict[str, dict]]:
     if not file_path.endswith(".go"):
         return (set(), {})
 
-    response_json_ptr = GOLANG_ANALYSER(file_path.encode("utf-8"), file_contents.encode("utf-8"))
+    response_json_ptr = GOLANG_ANALYSER(file_path.encode("utf-8"), get_file_contents().encode("utf-8"))
     loaded_response = json.loads(ctypes.string_at(response_json_ptr))
 
     if "error" in loaded_response:

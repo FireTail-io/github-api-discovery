@@ -27,17 +27,28 @@ func main() {
 	imports, openapiSpecs, err := analyse(fileName, fileContents)
 	assert.Nil(t, err)
 	assert.Equal(t, map[string]string{"net/http": "http"}, imports)
+
+	responses := map[string]map[string]map[string]string{
+		"responses": {
+			"default": {
+				"description": "Discovered via static analysis",
+			},
+		},
+	}
 	assert.Equal(t, map[string]interface{}{
-			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
+		"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
 			"openapi": "3.0.0",
-			"info": map[string]string{"title": "Static Analysis - Golang net/http"},
-			"paths": map[string]map[string]map[string]map[string]string{
+			"info":    map[string]string{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]map[string]map[string]map[string]map[string]string{
 				"/hello": {
-					"responses": {
-						"default": {
-							"description": "Discovered via static analysis",
-						},
-					},
+					"get":     responses,
+					"post":    responses,
+					"put":     responses,
+					"patch":   responses,
+					"delete":  responses,
+					"head":    responses,
+					"options": responses,
+					"trace":   responses,
 				}},
 		},
 	}, openapiSpecs)
@@ -64,17 +75,28 @@ func main() {
 	imports, openapiSpecs, err := analyse(fileName, fileContents)
 	assert.Nil(t, err)
 	assert.Equal(t, map[string]string{"net/http": "nethttp"}, imports)
+
+	responses := map[string]map[string]map[string]string{
+		"responses": {
+			"default": {
+				"description": "Discovered via static analysis",
+			},
+		},
+	}
 	assert.Equal(t, map[string]interface{}{
-			"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
+		"static-analysis:net/http:net_http_hello_world.go": map[string]interface{}{
 			"openapi": "3.0.0",
-			"info": map[string]string{"title": "Static Analysis - Golang net/http"},
-			"paths": map[string]map[string]map[string]map[string]string{
+			"info":    map[string]string{"title": "Static Analysis - Golang net/http"},
+			"paths": map[string]map[string]map[string]map[string]map[string]string{
 				"/hello": {
-					"responses": {
-						"default": {
-							"description": "Discovered via static analysis",
-						},
-					},
+					"get":     responses,
+					"post":    responses,
+					"put":     responses,
+					"patch":   responses,
+					"delete":  responses,
+					"head":    responses,
+					"options": responses,
+					"trace":   responses,
 				},
 			},
 		},

@@ -25,13 +25,13 @@ def parse_resolve_and_validate_openapi_spec(file_path: str, get_file_contents: C
     # First check it's a valid JSON/YAML file before passing it over to Prance
     if file_path.endswith(".json"):
         try:
-            json.loads(get_file_contents())
+            file_contents = json.loads(get_file_contents())
         except:  # noqa: E722
             return None
 
     elif file_path.endswith((".yaml", ".yml")):
         try:
-            yaml.safe_load(get_file_contents())
+            file_contents = yaml.safe_load(get_file_contents())
         except:  # noqa: E722
             return None
 
@@ -39,4 +39,4 @@ def parse_resolve_and_validate_openapi_spec(file_path: str, get_file_contents: C
         return None
 
     # If it was a valid JSON/YAML file, we can give it to Prance to load
-    return resolve_and_validate_openapi_spec(get_file_contents())
+    return resolve_and_validate_openapi_spec(yaml.dump(file_contents))
