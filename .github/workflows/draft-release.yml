@@ -33,7 +33,8 @@ jobs:
 
       - name: Set Image Tags From Release Output
         run: |
-          cat <<HEREDOC >>${{ github.env }}
+          cat <<HEREDOC >>${GITHUB_ENV}
+          TAG_BASE=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           PRERELEASE_IMAGE_TAG=${{ steps.draft_release.outputs.tag_name }}-prerelease
           PRERELEASE_LAMBDA_IMAGE_TAG=${{ steps.draft_release.outputs.tag_name }}-lambda-prerelease
           HEREDOC
@@ -48,33 +49,33 @@ jobs:
         run: |
           docker build \
             --target runtime \
-            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_IMAGE_TAG }} \
+            --tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_IMAGE_TAG }} \
             --file build_setup/Dockerfile \
             "${PWD}"
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_IMAGE_TAG }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-prerelease
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_IMAGE_TAG }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-prerelease
+          docker tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_IMAGE_TAG }} \
+            ${{ env.TAG_BASE }}:latest-prerelease
+          docker push ${{ env.TAG_BASE }}:${{ env.PRERELEASE_IMAGE_TAG }}
+          docker push ${{ env.TAG_BASE }}:latest-prerelease
 
       - name: Build and Push Lambda Image
         run: |
           docker build \
             --target runtime-lambda \
-            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
+            --tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
             --file build_setup/Dockerfile \
             "${PWD}"
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda-prerelease
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda-prerelease
+          docker tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
+            ${{ env.TAG_BASE }}:latest-lambda-prerelease
+          docker push ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }}
+          docker push ${{ env.TAG_BASE }}:latest-lambda-prerelease
 
       - name: Summarize Workflow Run
         run: |
           cat <<HEREDOC >>${GITHUB_STEP_SUMMARY}
           ## Successfully Pushed:
 
-          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_IMAGE_TAG }}
-          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-prerelease
-          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }}
-          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda-prerelease
+          - ${{ env.TAG_BASE }}:${{ env.PRERELEASE_IMAGE_TAG }}
+          - ${{ env.TAG_BASE }}:latest-prerelease
+          - ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }}
+          - ${{ env.TAG_BASE }}:latest-lambda-prerelease
           HEREDOC
