@@ -14,9 +14,8 @@ jobs:
     environment: prod
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
-      pull-requests: write
+      packages: write
 
     steps:
 
