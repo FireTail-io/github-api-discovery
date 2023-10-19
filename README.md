@@ -73,5 +73,5 @@ docker run --rm \
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------- | ------------------------------------------------ |
 | `GITHUB_TOKEN`       | A classic GitHub personal access token.                                                                                  | Yes ✅    | None                                             |
 | `FIRETAIL_APP_TOKEN` | An app token from the Firetail SaaS.                                                                                     | Yes ✅    | None                                             |
-| `FIRETAIL_API_URL`   | The URL of the Firetail SaaS' API.                                                                                       | No ❌     | `"https://api.saas.eu-west-1.prod.firetail.app"` |
-| `LOGGING_LEVEL`      | The logging level provided to python's [logging](https://docs.python.org/3/library/logging.html#logging-levels) library. | No ❌     | `"INFO"`                                         |
+| `FIRETAIL_API_URL`   | The URL of the Firetail SaaS API.                                                                                       | No ❌     | `https://api.saas.eu-west-1.prod.firetail.app` |
+| `LOGGING_LEVEL`      | The logging level provided to Python's [logging](https://docs.python.org/3/library/logging.html#logging-levels) library. | No ❌     | `INFO`                                         |
