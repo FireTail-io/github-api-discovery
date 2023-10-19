@@ -17,7 +17,7 @@ FuncReturnType = TypeVar("FuncReturnType")
 
 
 def get_datestamp() -> str:
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: GithubClient) -> FuncReturnType:
@@ -26,6 +26,10 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
             return func()
 
         except github.RateLimitExceededException:
-            rate_limit = github_client.get_rate_limit()
-            logger.warning(f"Rate limited calling {func}, waiting {rate_limit.core} second(s)")
-            time.sleep((datetime.datetime.now() - github_client.get_rate_limit().core.reset).seconds)
+            sleep_duration = (github_client.get_rate_limit().core.reset - datetime.datetime.utcnow()).seconds + 1
+            logger.warning(
+                f"Rate limited calling {func}, core rate limit resets at "
+                f"{github_client.get_rate_limit().core.reset.astimezone(datetime.timezone.utc).isoformat()}, "
+                f"waiting {sleep_duration} second(s)..."
+            )
+            time.sleep(sleep_duration)

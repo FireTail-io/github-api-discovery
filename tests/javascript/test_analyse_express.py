@@ -3,17 +3,22 @@ import pytest
 import yaml
 
 from static_analysis.javascript.analyse_express import (
-    analyse_express, get_app_identifiers, get_express_identifiers,
-    get_paths_and_methods, get_router_identifiers)
+    analyse_express,
+    get_app_identifiers,
+    get_express_identifiers,
+    get_paths_and_methods,
+    get_router_identifiers,
+)
 from static_analysis.javascript.analyse_javascript import JS_PARSER
 
 
 @pytest.fixture(autouse=True)
 def patch_datetime_now(monkeypatch):
     class PatchedDatetime(datetime.datetime):
-        def now():
+        def utcnow():
             return datetime.datetime(2000, 1, 1)
-    monkeypatch.setattr(datetime, 'datetime', PatchedDatetime)
+
+    monkeypatch.setattr(datetime, "datetime", PatchedDatetime)
 
 
 @pytest.mark.parametrize(

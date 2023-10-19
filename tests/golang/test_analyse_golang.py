@@ -5,7 +5,7 @@ def test_analyse_net_http_hello_world():
     file_path = "tests/golang/example_apps/net_http_hello_world.go"
     file_contents = open(file_path, "r").read()
 
-    detected_frameworks, appspecs = analyse_golang(file_path, file_contents)
+    detected_frameworks, appspecs = analyse_golang(file_path, lambda: file_contents)
 
     assert detected_frameworks == {"net/http"}
     assert appspecs == {
@@ -14,8 +14,9 @@ def test_analyse_net_http_hello_world():
             "info": {"title": "Static Analysis - Golang net/http"},
             "paths": {
                 "/hello": {
-                    "responses": {"default": {"description": "Discovered via static analysis"}}
-                },
+                    method: {"responses": {"default": {"description": "Discovered via static analysis"}}}
+                    for method in ["get", "post", "put", "patch", "delete", "head", "options", "trace"]
+                }
             },
         }
     }
@@ -25,7 +26,7 @@ def test_analyse_malformed_go_file():
     file_path = "tests/golang/example_apps/malformed.go"
     file_contents = '{"Oh no": "This is\'nt golang, i\'s JSON!"}'
 
-    detected_frameworks, appspecs = analyse_golang(file_path, file_contents)
+    detected_frameworks, appspecs = analyse_golang(file_path, lambda: file_contents)
 
     assert detected_frameworks == set()
     assert appspecs == {}

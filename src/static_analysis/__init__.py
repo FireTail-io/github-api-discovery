@@ -4,12 +4,12 @@ from static_analysis.golang.analyse_golang import analyse_golang
 from static_analysis.javascript.analyse_javascript import analyse_javascript
 from static_analysis.python.analyse_python import analyse_python
 
-ANALYSER_TYPE = Callable[[str, str], tuple[set[str], dict[str, dict[str, dict]]]]
+ANALYSER_TYPE = Callable[[str, Callable[[], str]], tuple[set[str], dict[str, dict[str, dict]]]]
 
 LANGUAGE_ANALYSERS: dict[str, list[ANALYSER_TYPE]] = {
     "Python": [analyse_python],
-    "Golang": [analyse_golang],
-    "Javascript": [analyse_javascript],
+    "Go": [analyse_golang],
+    "JavaScript": [analyse_javascript],
 }
 
 

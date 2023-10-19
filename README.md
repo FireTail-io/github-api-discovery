@@ -4,14 +4,36 @@ This Docker image will discover APIs in your GitHub account by scanning for open
 
 
 
-## Building
+## Quickstart
 
-You can build the image yourself by cloning the repository and using the following docker command:
+First, clone this repo and build the scanner's image:
 
 ```bash
 git clone git@github.com:FireTail-io/github-api-discovery.git
 cd github-api-discovery
 docker build --rm -t firetail-io/github-api-discovery:latest -f build_setup/Dockerfile . --target runtime
+```
+
+Make a copy of the provided [config-example.yml](./config-example.yml) and call it `config.yml`, then edit it for your use case.
+
+```bash
+cp config-example.yml config.yml
+open config.yml
+```
+
+Running the image requires two environment variables to be set:
+
+- `GITHUB_TOKEN`, [a classic GitHub personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic).
+- `FIRETAIL_APP_TOKEN`, [a FireTail app token](https://www.firetail.io/docs/create-app-token).
+
+Find a full list of environment variables under [Environment Variables](#environment-variables).
+
+Once you have created a classic GitHub personal access token and a FireTail app token, you can run the scanner image:
+
+```bash
+export GITHUB_TOKEN=YOUR_GITHUB_TOKEN
+export FIRETAIL_APP_TOKEN=YOUR_FIRETAIL_APP_TOKEN
+docker run --rm -e GITHUB_TOKEN=${GITHUB_TOKEN} -e FIRETAIL_APP_TOKEN=${FIRETAIL_APP_TOKEN} --mount type=bind,source="$(pwd)"/config.yml,target=/config.yml,readonly firetail-io/github-api-discovery:latest
 ```
 
 
@@ -48,6 +70,8 @@ export GITHUB_TOKEN=YOUR_GITHUB_TOKEN
 export FIRETAIL_APP_TOKEN=YOUR_FIRETAIL_APP_TOKEN
 docker run --rm -e GITHUB_TOKEN=${GITHUB_TOKEN} -e FIRETAIL_APP_TOKEN=${FIRETAIL_APP_TOKEN} --mount type=bind,source="$(pwd)"/config.yml,target=/config.yml,readonly firetail-io/github-api-discovery:latest
 ```
+=======
+## Environment Variables
 
 | Variable Name        | Description                                                  | Required? | Default                                          |
 | -------------------- | ------------------------------------------------------------ | --------- | ------------------------------------------------ |

@@ -94,7 +94,7 @@ def is_variable_declarator_or_assignment_expression_calling_func_member(
 def get_module_name_from_require_args(call_expression_arguments: Node) -> str | None:
     # The call expression arguments node should have exactly three childen, '(', '"express"' and ')'
     if call_expression_arguments.child_count != 3:
-        return False, None
+        return None
 
     # The call expression arguments node should have a single string child, the name of the required module
     string_arguments = get_children_of_type(call_expression_arguments, "string")
