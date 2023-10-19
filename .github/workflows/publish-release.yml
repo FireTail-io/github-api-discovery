@@ -22,7 +22,7 @@ jobs:
 
       - name: Set Image Tags
         run: |
-          NAMESPACE="$(awk '{print(tolower())}' <<<${{ github.repository_owner }})"
+          NAMESPACE="$(awk '{print(tolower($0))}' <<<${{ github.repository_owner }})"
           echo "TAG_BASE=${{ env.REGISTRY }}/${NAMESPACE}/${{ env.IMAGE_NAME }}" >>${GITHUB_ENV}
 
       - name: Log In to the Container Registry
