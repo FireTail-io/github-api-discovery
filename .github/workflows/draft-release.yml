@@ -33,7 +33,7 @@ jobs:
 
       - name: Set Image Tags From Release Output
         run: |
-          NAMESPACE="$(awk '{print(tolower())}' <<<${{ github.repository_owner }})"
+          NAMESPACE="$(awk '{print(tolower($0))}' <<<${{ github.repository_owner }})"
           cat <<HEREDOC >>${GITHUB_ENV}
           TAG_BASE=${{ env.REGISTRY }}/${NAMESPACE}/${{ env.IMAGE_NAME }}
           PRERELEASE_IMAGE_TAG=${{ steps.draft_release.outputs.tag_name }}-prerelease
