@@ -1,20 +1,17 @@
-name: Pull Prerelease Image From ECR And Push As Release Image When Draft Release Is Published
-
+name: Publish Release
+run-name: '@${{ github.triggering_actor }}: ${{ github.ref_name }}: ${{ github.event_name }}: ${{ github.event.action }}'
 on:
   release:
     types: [published]
 
 env:
-  AWS_REGION: us-east-1
-  ECR_REGISTRY: public.ecr.aws/x7v5r9e4
-  ECR_REPOSITORY: firetail-code-repository-scanner
+  REGISTRY: ghcr.io
+  IMAGE_NAME: firetail-code-repository-scanner
 
 jobs:
   publish-release:
     name: Publish Release
-
     environment: prod
-
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -22,35 +19,40 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Get release
-        id: get_release
-        uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ACCOUNT_ROLE_ARN }}
-          role-session-name: git-api-discovery-publish-action-prod
 
-      - name: Pull prerelease images from ECR, retag them as a releases, and push them back to ECR with their new tags
-        id: build-image
-        env:
-          PRERELEASE_IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}-prerelease
-          PRERELEASE_LAMBDA_IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}-lambda-prerelease
-          IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}
-          LAMBDA_IMAGE_TAG: ${{ steps.get_release.outputs.tag_name }}-lambda
+      - name: Log In to the Container Registry
         run: |
-          aws ecr-public get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin public.ecr.aws
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$LAMBDA_IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LAMBDA_IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$PRERELEASE_LAMBDA_IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest-lambda
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+           docker login ${{ env.REGISTRY }} \
+            --username ${{ github.actor }} \
+            --password-stdin <<<${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Prelease Lambda Image as Full Release
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-prerelease
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-prerelease \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-prerelease \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Publish Prelease Lambda Image as Full Release
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda-prerelease
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda-prerelease \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda-prerelease \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda
+
+      - name: Summarize Workflow Run
+        run: |
+          cat <<HEREDOC >>${GITHUB_STEP_SUMMARY}
+          ## Successfully Pushed:
+
+          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-lambda
+          - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-lambda
+          HEREDOC
