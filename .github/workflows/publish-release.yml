@@ -40,16 +40,6 @@ jobs:
           docker push ${{ env.TAG_BASE }}:${{ github.ref_name }}
           docker push ${{ env.TAG_BASE }}:latest
 
-      - name: Publish Prelease Lambda Image as Full Release
-        run: |
-          docker pull ${{ env.TAG_BASE }}:${{ github.ref_name }}-lambda-prerelease
-          docker tag ${{ env.TAG_BASE }}:${{ github.ref_name }}-lambda-prerelease \
-            ${{ env.TAG_BASE }}:${{ github.ref_name }}-lambda
-          docker tag ${{ env.TAG_BASE }}:${{ github.ref_name }}-lambda-prerelease \
-            ${{ env.TAG_BASE }}:latest-lambda
-          docker push ${{ env.TAG_BASE }}:${{ github.ref_name }}-lambda
-          docker push ${{ env.TAG_BASE }}:latest-lambda
-
       - name: Summarize Workflow Run
         run: |
           cat <<HEREDOC >>${GITHUB_STEP_SUMMARY}

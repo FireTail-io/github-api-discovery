@@ -17,8 +17,8 @@ users: # default []
     skip_archived_repositories: False # default False
     skip_forks: False # default False
 
-# List individual repositories to include or exclude them explicitly from scanning.
-# Has higher prescedence than scanning via users or orgs.
+# List individual repositories to include or exclude explicitly - has higher 
+# precedence than scanning via users or orgs
 repositories: # default []
   example-user/example-repository: exclude
   example-organisation/example-repository: include

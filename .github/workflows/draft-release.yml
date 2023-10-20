@@ -58,18 +58,6 @@ jobs:
           docker push ${{ env.TAG_BASE }}:${{ env.PRERELEASE_IMAGE_TAG }}
           docker push ${{ env.TAG_BASE }}:latest-prerelease
 
-      - name: Build and Push Lambda Image
-        run: |
-          docker build \
-            --target runtime-lambda \
-            --tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
-            --file build_setup/Dockerfile \
-            "${PWD}"
-          docker tag ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }} \
-            ${{ env.TAG_BASE }}:latest-lambda-prerelease
-          docker push ${{ env.TAG_BASE }}:${{ env.PRERELEASE_LAMBDA_IMAGE_TAG }}
-          docker push ${{ env.TAG_BASE }}:latest-lambda-prerelease
-
       - name: Summarize Workflow Run
         run: |
           cat <<HEREDOC >>${GITHUB_STEP_SUMMARY}
