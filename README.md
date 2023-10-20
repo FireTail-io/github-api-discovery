@@ -1,17 +1,22 @@
 # API Discovery from Github Repositories
 
-This Docker image will discover APIs in your GitHub account by scanning for openapi/swagger specifications in your repositories, as well as generating them via static code analysis. It will create an API per repository, and potentially multiple collections for that API, in the FireTail SaaS Platform.
+This Docker image will discover APIs in your GitHub account by scanning for openapi/swagger
+specifications in your repositories, as well as generating them via static code analysis. It will
+create an API per repository, and potentially multiple collections for that API, in the FireTail
+SaaS Platform.
 
 ## Requirements
 
 ### To Pull The Image
 
-- An access token with at least `read:packages` scope ([link](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry))
+- An access token with at least `read:packages` scope
+  ([link](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry))
 
 ### To Scan Repos
 
 - A `config.yml` file (not `config.yaml`)
-- A 'classic' GitHub token with `xyz` permissions ([link](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic))
+- A 'classic' GitHub token with `xyz` permissions
+  ([link](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic))
   - Can be the same as the token used to pull the image
 - A FireTail app token ([link](https://www.firetail.io/docs/create-app-token))
 
@@ -19,7 +24,8 @@ This Docker image will discover APIs in your GitHub account by scanning for open
 
 ### Pull The Image
 
-Authenticate with your `read:packages` scoped token ([link](https://docs.docker.com/engine/reference/commandline/login/))
+Authenticate with your `read:packages` scoped token
+([link](https://docs.docker.com/engine/reference/commandline/login/))
 
 ```shell
 docker pull ghcr.io/firetail-io/firetail-code-repository-scanner:latest
