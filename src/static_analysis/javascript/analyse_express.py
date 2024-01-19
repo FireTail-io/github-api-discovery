@@ -1,13 +1,16 @@
 from tree_sitter import Tree
 
-from utils import get_datestamp
 from static_analysis.javascript.utils import (
-    get_children_of_type, get_default_identifiers_from_import_statement,
+    get_children_of_type,
+    get_default_identifiers_from_import_statement,
     get_identifiers_from_variable_declarator_or_assignment_expression,
-    get_module_name_from_import_statement, get_module_name_from_require_args,
+    get_module_name_from_import_statement,
+    get_module_name_from_require_args,
     is_variable_declarator_or_assignment_expression_calling_func,
     is_variable_declarator_or_assignment_expression_calling_func_member,
-    traverse_tree_depth_first)
+    traverse_tree_depth_first,
+)
+from utils import get_datestamp
 
 
 def get_express_identifiers(tree: Tree) -> set[str]:
@@ -25,8 +28,10 @@ def get_express_identifiers(tree: Tree) -> set[str]:
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = require("express");'
-                identifiers_assigned_to, last_assignment_expression = \
-                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+                (
+                    identifiers_assigned_to,
+                    last_assignment_expression,
+                ) = get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
                 # If we didn't manage to extract any identifiers then we don't care if require() is involved, because we
                 # don't have any identifiers to add to the set of express_identifiers anyway
@@ -58,8 +63,10 @@ def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = express();'
-                identifiers_assigned_to, last_assignment_expression = \
-                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+                (
+                    identifiers_assigned_to,
+                    last_assignment_expression,
+                ) = get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
                 # If we didn't manage to extract any identifiers then we don't care if express() is involved, because we
                 # don't have any identifiers to add to the set of app_identifiers anyway
@@ -69,13 +76,15 @@ def get_app_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str]:
                 # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
                 # can now check to see if it actually calls express. E.g. if the variable declarator was
                 # 'foo = bar = baz = express();', last_assignment_expression would be 'baz = express();'
-                is_calling_express = any([
-                    # we don't care about the args to express() so just [0]
-                    is_variable_declarator_or_assignment_expression_calling_func(
-                        last_assignment_expression, express_identifier
-                    )[0]
-                    for express_identifier in express_identifiers
-                ])
+                is_calling_express = any(
+                    [
+                        # we don't care about the args to express() so just [0]
+                        is_variable_declarator_or_assignment_expression_calling_func(
+                            last_assignment_expression, express_identifier
+                        )[0]
+                        for express_identifier in express_identifiers
+                    ]
+                )
                 if not is_calling_express:
                     continue
 
@@ -92,8 +101,10 @@ def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str
             case "variable_declarator" | "assignment_expression":
                 # Pick out all the identifiers from nested assignment_expressions
                 # E.g. 'foo = bar = baz = express();'
-                identifiers_assigned_to, last_assignment_expression = \
-                    get_identifiers_from_variable_declarator_or_assignment_expression(node)
+                (
+                    identifiers_assigned_to,
+                    last_assignment_expression,
+                ) = get_identifiers_from_variable_declarator_or_assignment_expression(node)
 
                 # If we didn't manage to extract any identifiers then we don't care if express() is involved, because we
                 # don't have any identifiers to add to the set of app_identifiers anyway
@@ -103,13 +114,15 @@ def get_router_identifiers(tree: Tree, express_identifiers: set[str]) -> set[str
                 # get_identifiers_from_variable_declarator returns the last assignment expression it traversed, which we
                 # can now check to see if it actually calls express.Router(). E.g. if the variable declarator was
                 # 'foo = bar = baz = express.Router();', last_assignment_expression would be 'baz = express.Router();'
-                is_calling_express_router = any([
-                    # we don't care about the args to express() so just [0]
-                    is_variable_declarator_or_assignment_expression_calling_func_member(
-                        last_assignment_expression, express_identifier, "Router"
-                    )[0]
-                    for express_identifier in express_identifiers
-                ])
+                is_calling_express_router = any(
+                    [
+                        # we don't care about the args to express() so just [0]
+                        is_variable_declarator_or_assignment_expression_calling_func_member(
+                            last_assignment_expression, express_identifier, "Router"
+                        )[0]
+                        for express_identifier in express_identifiers
+                    ]
+                )
                 if not is_calling_express_router:
                     continue
 
@@ -124,9 +137,7 @@ def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> d
     # NOTE: This is a subset of all the methods that you can use in Express; specifically, an intersection with all the
     # methods supported by the OpenAPI 3 specification with the addition of "all" and "use" which in Express accept all
     # HTTP methods
-    SUPPORTED_EXPRESS_PROPERTIES = {
-        "all", "delete", "get", "head", "options", "patch", "post", "put", "trace", "use"
-    }
+    SUPPORTED_EXPRESS_PROPERTIES = {"all", "delete", "get", "head", "options", "patch", "post", "put", "trace", "use"}
 
     for node in traverse_tree_depth_first(tree):
         match node.type:
@@ -174,10 +185,7 @@ def get_paths_and_methods(tree: Tree, app_and_router_identifiers: set[str]) -> d
                 if len(string_arguments) == 1:
                     # There should be a single string fragment within the string whose text is the path
                     string_fragments = get_children_of_type(string_arguments[0], "string_fragment")
-                    if (
-                        len(string_fragments) != 1
-                        or type(string_fragments[0].text) != bytes
-                    ):
+                    if len(string_fragments) != 1 or type(string_fragments[0].text) != bytes:
                         continue
 
                     path = string_fragments[0].text.decode("utf-8")
@@ -205,15 +213,12 @@ def analyse_express(tree: Tree) -> dict | None:
     # definition under each of the methods, but it's good enough for now.
     return {
         "openapi": "3.0.0",
-        "info": {
-            "title": "Static Analysis - Express",
-            "version": get_datestamp()
-        },
+        "info": {"title": "Static Analysis - Express", "version": get_datestamp()},
         "paths": {
             path: {
-                method: {
-                    "responses": {"default": {"description": "Discovered via static analysis"}}
-                } for method in methods
-            } for path, methods in paths.items()
+                method: {"responses": {"default": {"description": "Discovered via static analysis"}}}
+                for method in methods
+            }
+            for path, methods in paths.items()
         },
     }

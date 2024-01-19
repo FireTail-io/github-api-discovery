@@ -1,4 +1,5 @@
 import time
+
 from scanning import scan
 from utils import logger
 
