@@ -119,7 +119,7 @@ def upload_api_spec_to_firetail_collection(
 
 
 def upload_discovered_api_spec_to_firetail(
-    source: str, openapi_spec: dict, api_uuid: str, firetail_api_url: str, firetail_api_token: str
+    source: str, openapi_spec: dict, api_uuid: str, firetail_api_url: str, firetail_api_token: str, external_id: str
 ):
     upload_api_spec_response = requests.post(
         f"{firetail_api_url}/discovery/api-repository/{api_uuid}/appspec",
@@ -127,10 +127,7 @@ def upload_discovered_api_spec_to_firetail(
             "x-ft-api-key": firetail_api_token,
             "Content-Type": "application/json",
         },
-        json={
-            "source": source,
-            "appspec": openapi_spec,
-        },
+        json={"source": source, "appspec": openapi_spec, "external_id": external_id},
     )
 
     if upload_api_spec_response.status_code not in [201, 304]:
