@@ -53,7 +53,7 @@ def test_run_handler():
 
 
 def fake_analyser():
-    return ({}, {})
+    return set(), {}
 
 
 @mock.patch("main_githubaction.LANGUAGE_ANALYSERS", return_value={"Python": [fake_analyser]})

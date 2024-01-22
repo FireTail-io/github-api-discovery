@@ -5,6 +5,9 @@ inputs:
   FIRETAIL_API_TOKEN:
     description: "Your FireTail API token"
     required: true
+  ORGANIZATION_UUID:
+    description: "Your Firetail Organization UUID"
+    required: true
   FIRETAIL_API_URL:
     description: "Your FireTail API token"
     required: false
@@ -26,6 +29,18 @@ inputs:
     description: "A comma separated list of languages to statically analyse (currently supported are Python, Golang and Javascript)"
     required: false
     default: "Python,Golang,Javascript"
+  CRITICAL_FINDING_THRESHOLD:
+    description: "Finding level for failing the action if there is more than this number of Critical findings"
+    default: "1"
+  HIGH_FINDING_THRESHOLD:
+    description: "Finding level for failing the action if there is more than this number of Finding findings"
+    default: "1"
+  MEDIUM_FINDING_THRESHOLD:
+    description: "Finding level for failing the action if there is more than this number of Medium findings"
+    default: "4"
+  LOW_FINDING_THRESHOLD:
+    description: "Finding level for failing the action if there is more than this number of Low findings"
+    default: "10"
 runs:
   using: "docker"
   image: "Dockerfile.githubaction"
