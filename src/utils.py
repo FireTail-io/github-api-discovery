@@ -101,6 +101,7 @@ def upload_api_spec_to_firetail_collection(
     collection_uuid: str,
     firetail_api_url: str,
     firetail_api_token: str,
+    external_id: str,
 ):
     FIRETAIL_API_RESPONSE = requests.post(
         url=f"{firetail_api_url}/code_repository/spec",
@@ -109,6 +110,7 @@ def upload_api_spec_to_firetail_collection(
                 collection_uuid=collection_uuid,
                 spec_data=openapi_spec,
                 spec_type=get_spec_type(openapi_spec),
+                external_id=external_id,
                 context=context,
             )
         ),

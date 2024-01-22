@@ -118,7 +118,7 @@ def handler():
             break
 
     for ex_id in external_uuids:
-        if has_findings_over_x(ex_id, org_uuid, firetail_api_token):
+        if findings_breach_threshold(ex_id, org_uuid, firetail_api_token):
             raise "Error - This action found errors with your spec"
 
 
@@ -143,10 +143,10 @@ def get_context(context):
     )
 
 
-def has_findings_over_x(ex_id: str, org_uuid: str, api_token: str):
+def findings_breach_threshold(ex_id: str, org_uuid: str, api_token: str):
     endpoint = f"/organisations/{org_uuid}/events/external-id/{ex_id}"
     event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
-    if event_resp.status_code != 200:
+    if event_resp.status_code != 200:  # pragma: nocover
         print("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
     thresholds = {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 4, "LOW": 10}  # note - skipping informational.
     findings = event_resp.get("initialFindingSeverities")
