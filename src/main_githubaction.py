@@ -5,7 +5,6 @@ import time
 import uuid
 
 import requests
-from firetail_toolbox.ft_logger import logger_wrapper
 
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import LANGUAGE_ANALYSERS
@@ -148,7 +147,7 @@ def has_findings_over_x(ex_id: str, org_uuid: str, api_token: str):
     endpoint = f"/organisations/{org_uuid}/events/external-id/{ex_id}"
     event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
     if event_resp.status_code != 200:
-        logger_wrapper("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
+        print("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
     thresholds = {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 4, "LOW": 10}  # note - skipping informational.
     findings = event_resp.get("initialFindingSeverities")
     for level, limit in thresholds.items():
