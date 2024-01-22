@@ -29,7 +29,6 @@ def handler():
     context = os.environ.get("CONTEXT")
     if context:
         context = get_context(context)
-
     # If API_SPEC_LOCATION is set then we upload the OpenAPI spec at that location
     collection_uuid = os.environ.get("COLLECTION_UUID")
     org_uuid = os.environ.get("ORGANIZATION_UUID")
@@ -55,7 +54,6 @@ def handler():
         last_time = time.time()
         external_uuids.append(external_id)
         logger.info(f"Successfully uploaded OpenAPI spec to Firetail: {api_spec_location}")
-
     static_analysis_root_dir = os.environ.get("STATIC_ANALYSIS_ROOT_DIR", "/")
     static_analysis_languages = map(
         lambda v: v.strip(), os.environ.get("STATIC_ANALYSIS_LANGUAGES", "Python,Golang,Javascript").split(",")

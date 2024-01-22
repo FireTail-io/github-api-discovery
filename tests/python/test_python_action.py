@@ -3,6 +3,8 @@ import pytest
 import responses
 
 from main_githubaction import findings_breach_threshold, handler
+from static_analysis.python.analyse_python import analyse_python
+from unittest import mock
 
 
 @responses.activate
@@ -50,6 +52,12 @@ def test_run_handler():
         handler()
 
 
-def test_base_env_var_set_no_context():
+def fake_analyser():
+    return ({}, {})
+
+
+@mock.patch("main_githubaction.LANGUAGE_ANALYSERS", return_value={"Python": [fake_analyser]})
+def test_base_env_var_set_no_context(_):
     os.environ["FIRETAIL_API_TOKEN"] = "token-token-token"
+    os.environ["STATIC_ANALYSIS_ROOT_DIR"] = "src"
     handler()
