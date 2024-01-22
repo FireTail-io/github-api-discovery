@@ -43,13 +43,13 @@ def handler():
             context.file_urls.append(api_spec_location)
         openapi_spec = load_openapi_spec(api_spec_location)
         external_id = str(uuid.uuid4())
+        context.external_id = external_id
         upload_api_spec_to_firetail_collection(
             openapi_spec=openapi_spec,
             context=context,
             collection_uuid=collection_uuid,
             firetail_api_url=BASE_URL,
             firetail_api_token=firetail_api_token,
-            external_id=external_id,
         )
         last_time = time.time()
         external_uuids.append(external_id)
@@ -73,13 +73,13 @@ def handler():
             if openapi_spec is not None:
                 logger.info(f"{full_path}: Detected OpenAPI spec, uploading to Firetail...")
                 external_uuid = str(uuid.uuid4())
+                context.external_id = external_id
                 upload_discovered_api_spec_to_firetail(
                     source=full_path,
                     openapi_spec=openapi_spec,
                     api_uuid=get_api_uuid_from_api_token(firetail_api_token),
                     firetail_api_url=BASE_URL,
                     firetail_api_token=firetail_api_token,
-                    external_id=external_uuid,
                 )
                 external_uuids.append(external_uuid)
                 last_time = time.time()
@@ -94,13 +94,13 @@ def handler():
                     for openapi_spec_source, openapi_spec in openapi_specs_from_analysis.items():
                         logger.info(f"{full_path}: Created OpenAPI spec via {language} static analysis...")
                         external_uuid = str(uuid.uuid4())
+                        context.external_id = external_id
                         upload_discovered_api_spec_to_firetail(
                             source=openapi_spec_source,
                             openapi_spec=openapi_spec,
                             api_uuid=get_api_uuid_from_api_token(firetail_api_token),
                             firetail_api_url=BASE_URL,
                             firetail_api_token=firetail_api_token,
-                            external_id=external_uuid,
                         )
                         external_uuids.append(external_uuid)
                         last_time = time.time()
@@ -137,6 +137,7 @@ def get_context(context):
         runId=context.get("run_id"),
         timeTriggered=int(time.time() * 1000 * 1000),
         timeTriggeredUTCString=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        external_id=context.get("external_id"),
         file_urls=[],
     )
 

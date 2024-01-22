@@ -37,6 +37,7 @@ class GitHubContext:
     timeTriggered: int
     timeTriggeredUTCString: str
     file_urls: list[str]
+    external_id: str
 
 
 def get_api_uuid_from_api_token(api_token: str) -> str:
@@ -91,13 +92,11 @@ def upload_api_spec_to_firetail_collection(
     collection_uuid: str,
     firetail_api_url: str,
     firetail_api_token: str,
-    external_id: str,
 ):
     request_body = {
         "collection_uuid": collection_uuid,
         "spec_data": openapi_spec,
         "spec_type": get_spec_type(openapi_spec),
-        "external_id": external_id,
         "context": asdict(context),
     }
     firetail_api_response = requests.post(
@@ -110,7 +109,7 @@ def upload_api_spec_to_firetail_collection(
 
 
 def upload_discovered_api_spec_to_firetail(
-    source: str, openapi_spec: dict, api_uuid: str, firetail_api_url: str, firetail_api_token: str, external_id: str
+    source: str, openapi_spec: dict, api_uuid: str, firetail_api_url: str, firetail_api_token: str
 ):
     upload_api_spec_response = requests.post(
         f"{firetail_api_url}/discovery/api-repository/{api_uuid}/appspec",
@@ -118,7 +117,7 @@ def upload_discovered_api_spec_to_firetail(
             "x-ft-api-key": firetail_api_token,
             "Content-Type": "application/json",
         },
-        json={"source": source, "appspec": openapi_spec, "external_id": external_id},
+        json={"source": source, "appspec": openapi_spec},
     )
 
     if upload_api_spec_response.status_code not in [201, 304]:
