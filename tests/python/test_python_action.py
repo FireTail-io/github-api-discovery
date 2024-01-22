@@ -1,7 +1,7 @@
 import pytest
 import responses
 
-from main_githubaction import findings_breach_threshold
+from main_githubaction import findings_breach_threshold, handler
 
 
 @responses.activate
@@ -42,3 +42,8 @@ def test_findings_call_non_200():
         findings_breach_threshold("some-id", "org_uuid", "api_token")
     except Exception:
         raise Exception("Should not raise exception")
+
+
+def test_run_handler():
+    with pytest.raises(Exception):
+        handler()

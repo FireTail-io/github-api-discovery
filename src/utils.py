@@ -2,7 +2,7 @@ import datetime
 import logging
 import time
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Callable, TypeVar
 
 import github
@@ -37,15 +37,6 @@ class GitHubContext:
     timeTriggered: int
     timeTriggeredUTCString: str
     file_urls: list[str]
-
-
-@dataclass
-class FireTailRequestBody:
-    collection_uuid: str
-    spec_data: dict
-    spec_type: str
-    external_id: str
-    context: GitHubContext | None = None
 
 
 def get_api_uuid_from_api_token(api_token: str) -> str:
@@ -84,8 +75,7 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
     while True:
         try:
             return func()
-
-        except github.RateLimitExceededException:
+        except github.RateLimitExceededException:  # pragma: no cover
             sleep_duration = (github_client.get_rate_limit().core.reset - datetime.datetime.utcnow()).seconds + 1
             logger.warning(
                 f"Rate limited calling {func}, core rate limit resets at "
@@ -103,21 +93,20 @@ def upload_api_spec_to_firetail_collection(
     firetail_api_token: str,
     external_id: str,
 ):
-    FIRETAIL_API_RESPONSE = requests.post(
+    request_body = {
+        "collection_uuid": collection_uuid,
+        "spec_data": openapi_spec,
+        "spec_type": get_spec_type(openapi_spec),
+        "external_id": external_id,
+        "context": context,
+    }
+    firetail_api_response = requests.post(
         url=f"{firetail_api_url}/code_repository/spec",
-        json=asdict(
-            FireTailRequestBody(
-                collection_uuid=collection_uuid,
-                spec_data=openapi_spec,
-                spec_type=get_spec_type(openapi_spec),
-                external_id=external_id,
-                context=context,
-            )
-        ),
+        json=request_body,
         headers={"x-ft-api-key": firetail_api_token},
     )
-    if FIRETAIL_API_RESPONSE.status_code not in {201, 409}:
-        raise Exception(f"Failed to send FireTail API Spec. {FIRETAIL_API_RESPONSE.text}")
+    if firetail_api_response.status_code not in {201, 409}:
+        raise Exception(f"Failed to send FireTail API Spec. {firetail_api_response.text}")
 
 
 def upload_discovered_api_spec_to_firetail(
