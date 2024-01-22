@@ -101,12 +101,6 @@ def upload_api_spec_to_firetail_collection(
     firetail_api_url: str,
     firetail_api_token: str,
 ):
-    request_body = {
-        "collection_uuid": collection_uuid,
-        "spec_data": openapi_spec,
-        "spec_type": get_spec_type(openapi_spec),
-        "context": asdict(context),
-    }
     firetail_api_response = requests.post(
         url=f"{firetail_api_url}/code_repository/spec",
         json=asdict(
