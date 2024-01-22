@@ -73,7 +73,7 @@ def handler():
             if openapi_spec is not None:
                 logger.info(f"{full_path}: Detected OpenAPI spec, uploading to Firetail...")
                 external_uuid = str(uuid.uuid4())
-                context.external_id = external_id
+                context.external_id = external_uuid
                 upload_discovered_api_spec_to_firetail(
                     source=full_path,
                     openapi_spec=openapi_spec,
@@ -94,7 +94,7 @@ def handler():
                     for openapi_spec_source, openapi_spec in openapi_specs_from_analysis.items():
                         logger.info(f"{full_path}: Created OpenAPI spec via {language} static analysis...")
                         external_uuid = str(uuid.uuid4())
-                        context.external_id = external_id
+                        context.external_id = external_uuid
                         upload_discovered_api_spec_to_firetail(
                             source=openapi_spec_source,
                             openapi_spec=openapi_spec,
@@ -137,7 +137,7 @@ def get_context(context):
         runId=context.get("run_id"),
         timeTriggered=int(time.time() * 1000 * 1000),
         timeTriggeredUTCString=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        external_id=context.get("external_id"),
+        external_id=context.get("external_id", ""),
         file_urls=[],
     )
 
