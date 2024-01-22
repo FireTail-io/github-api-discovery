@@ -143,13 +143,21 @@ def get_context(context):
     )
 
 
+def get_thresholds() -> dict:
+    critical = os.environ.get("CRITICAL_FINDING_THRESHOLD", 1)
+    high = os.environ.get("HIGH_FINDING_THRESHOLD", 1)
+    medium = os.environ.get("MEDIUM_FINDING_THRESHOLD", 4)
+    low = os.environ.get("LOW_FINDING_THRESHOLD", 10)
+    return {"CRITICAL": critical, "HIGH": high, "MEDIUM": medium, "LOW": low}
+
+
 def findings_breach_threshold(ex_id: str, org_uuid: str, api_token: str):
     endpoint = f"/organisations/{org_uuid}/events/external-id/{ex_id}"
     event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
     if event_resp.status_code != 200:  # pragma: nocover
         print("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
-    thresholds = {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 4, "LOW": 10}  # note - skipping informational.
-    findings = event_resp.get("initialFindingSeverities")
+    thresholds = get_thresholds()
+    findings = event_resp.get("initialFindingSeverities", {})
     for level, limit in thresholds.items():
         if findings.get(level, 0) > limit:
             raise Exception(f"Findings breached limit: {findings}")

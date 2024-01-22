@@ -72,7 +72,6 @@ def load_openapi_spec(api_spec_location: str) -> dict:
     except FileNotFoundError:
         raise Exception(f"Could not find OpenAPI spec at {api_spec_location}")
     if openapi_spec is None:
-        # TODO: a much more helpful error message here
         raise Exception(f"File at {api_spec_location} is not a valid OpenAPI spec")
     return openapi_spec
 
