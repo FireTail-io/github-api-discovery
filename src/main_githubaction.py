@@ -17,6 +17,8 @@ from utils import (
     upload_discovered_api_spec_to_firetail,
 )
 
+BASE_URL = os.environ.get("FIRETAIL_API_URL", "https://api.saas.eu-west-1.prod.firetail.app")
+
 
 def handler():
     firetail_api_token = os.environ.get("FIRETAIL_API_TOKEN")
@@ -111,7 +113,7 @@ def handler():
         # We don't have anything else to check, just return.
         return
     # We have external IDs now check for finding counts
-    wait_time = 60  # TODO: make this configurable
+    wait_time = os.environ.get("FINDING_TIMEOUT_SECONDS", 20)
     while True:
         # we loop until we have elapsed the timeout
         if (time.time() - last_time) > wait_time:
@@ -152,12 +154,12 @@ def get_thresholds() -> dict:
 
 
 def findings_breach_threshold(ex_id: str, org_uuid: str, api_token: str):
-    endpoint = f"/organisations/{org_uuid}/events/external-id/{ex_id}"
+    endpoint = f"{BASE_URL}/organisations/{org_uuid}/events/external-id/{ex_id}"
     event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
     if event_resp.status_code != 200:  # pragma: nocover
         print("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
     thresholds = get_thresholds()
-    findings = event_resp.get("initialFindingSeverities", {})
+    findings = event_resp.json().get("initialFindingSeverities", {})
     for level, limit in thresholds.items():
         if findings.get(level, 0) > limit:
             raise Exception(f"Findings breached limit: {findings}")
