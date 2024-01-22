@@ -24,7 +24,6 @@ def handler():
     firetail_api_token = os.environ.get("FIRETAIL_API_TOKEN")
     if firetail_api_token is None:
         raise Exception("Missing environment variable 'FIRETAIL_API_TOKEN")
-    firetail_api_url = os.environ.get("FIRETAIL_API_URL", "https://api.saas.eu-west-1.prod.firetail.app")
     external_uuids = []
     last_time = time.time()
     context = os.environ.get("CONTEXT")
@@ -43,14 +42,13 @@ def handler():
         # If we have a CONTEXT then we can add the API_SPEC_LOCATION to the file_urls
         if context is not None:
             context.file_urls.append(api_spec_location)
-
         openapi_spec = load_openapi_spec(api_spec_location)
         external_id = str(uuid.uuid4())
         upload_api_spec_to_firetail_collection(
             openapi_spec=openapi_spec,
             context=context,
             collection_uuid=collection_uuid,
-            firetail_api_url=firetail_api_url,
+            firetail_api_url=BASE_URL,
             firetail_api_token=firetail_api_token,
             external_id=external_id,
         )
@@ -81,7 +79,7 @@ def handler():
                     source=full_path,
                     openapi_spec=openapi_spec,
                     api_uuid=get_api_uuid_from_api_token(firetail_api_token),
-                    firetail_api_url=firetail_api_url,
+                    firetail_api_url=BASE_URL,
                     firetail_api_token=firetail_api_token,
                     external_id=external_uuid,
                 )
@@ -102,7 +100,7 @@ def handler():
                             source=openapi_spec_source,
                             openapi_spec=openapi_spec,
                             api_uuid=get_api_uuid_from_api_token(firetail_api_token),
-                            firetail_api_url=firetail_api_url,
+                            firetail_api_url=BASE_URL,
                             firetail_api_token=firetail_api_token,
                             external_id=external_uuid,
                         )
@@ -121,7 +119,7 @@ def handler():
 
     for ex_id in external_uuids:
         if findings_breach_threshold(ex_id, org_uuid, firetail_api_token):
-            raise "Error - This action found errors with your spec"
+            raise Exception("Error - This action found errors with your spec")
 
 
 def get_context(context):
