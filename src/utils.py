@@ -44,8 +44,8 @@ class FireTailRequestBody:
     collection_uuid: str
     spec_data: dict
     spec_type: str
-    context: GitHubContext | None = None
     external_id: str
+    context: GitHubContext | None = None
 
 
 def get_api_uuid_from_api_token(api_token: str) -> str:
