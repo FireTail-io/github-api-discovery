@@ -1,3 +1,4 @@
+import os
 import pytest
 import responses
 
@@ -47,3 +48,8 @@ def test_findings_call_non_200():
 def test_run_handler():
     with pytest.raises(Exception):
         handler()
+
+
+def test_base_env_var_set_no_context():
+    os.environ["FIRETAIL_API_TOKEN"] = "token-token-token"
+    handler()
