@@ -2,7 +2,7 @@ import datetime
 import logging
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Callable, TypeVar
 
 import github
@@ -98,7 +98,7 @@ def upload_api_spec_to_firetail_collection(
         "spec_data": openapi_spec,
         "spec_type": get_spec_type(openapi_spec),
         "external_id": external_id,
-        "context": context,
+        "context": asdict(context),
     }
     firetail_api_response = requests.post(
         url=f"{firetail_api_url}/code_repository/spec",
