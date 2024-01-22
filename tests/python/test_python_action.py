@@ -1,5 +1,6 @@
 import pytest
 import responses
+
 from main_githubaction import findings_breach_threshold
 
 
@@ -35,7 +36,7 @@ def test_findings_call_non_200():
         responses.GET,
         "https://api.saas.eu-west-1.prod.firetail.app/organisations/org_uuid/events/external-id/some-id",
         json={"initialFindingSeverities": {"CRITICAL": 200}},
-        status=200,
+        status=401,
     )
     try:
         findings_breach_threshold("some-id", "org_uuid", "api_token")
