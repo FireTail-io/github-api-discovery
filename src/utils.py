@@ -86,6 +86,14 @@ def respect_rate_limit(func: Callable[[], FuncReturnType], github_client: Github
             time.sleep(sleep_duration)
 
 
+@dataclass
+class FireTailRequestBody:
+    collection_uuid: str
+    spec_data: dict
+    spec_type: str
+    context: GitHubContext | None = None
+
+
 def upload_api_spec_to_firetail_collection(
     openapi_spec: dict,
     context: GitHubContext | None,
@@ -101,7 +109,14 @@ def upload_api_spec_to_firetail_collection(
     }
     firetail_api_response = requests.post(
         url=f"{firetail_api_url}/code_repository/spec",
-        json=request_body,
+        json=asdict(
+            FireTailRequestBody(
+                collection_uuid=collection_uuid,
+                spec_data=openapi_spec,
+                spec_type=get_spec_type(openapi_spec),
+                context=context,
+            )
+        ),
         headers={"x-ft-api-key": firetail_api_token},
     )
     if firetail_api_response.status_code not in {201, 409}:
