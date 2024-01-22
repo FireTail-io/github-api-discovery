@@ -13,11 +13,7 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
         backend="openapi-spec-validator",
         lazy=True,
     )
-    try:
-        parser.parse()
-    except:  # noqa: E722
-        # In the future, maybe we can provide some proper details here.
-        return None
+    parser.parse()
     return parser.specification
 
 
