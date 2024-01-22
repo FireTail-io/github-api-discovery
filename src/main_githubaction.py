@@ -158,6 +158,7 @@ def findings_breach_threshold(ex_id: str, org_uuid: str, api_token: str):
     event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
     if event_resp.status_code != 200:  # pragma: nocover
         print("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
+        return
     thresholds = get_thresholds()
     findings = event_resp.json().get("initialFindingSeverities", {})
     for level, limit in thresholds.items():
