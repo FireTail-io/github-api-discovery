@@ -4,6 +4,9 @@ import os
 import time
 import uuid
 
+import requests
+from firetail_toolbox.ft_logger import logger_wrapper
+
 from openapi.validation import parse_resolve_and_validate_openapi_spec
 from static_analysis import LANGUAGE_ANALYSERS
 from utils import (
@@ -29,6 +32,7 @@ def handler():
 
     # If API_SPEC_LOCATION is set then we upload the OpenAPI spec at that location
     collection_uuid = os.environ.get("COLLECTION_UUID")
+    org_uuid = os.environ.get("ORGANIZATION_UUID")
     api_spec_location = os.environ.get("API_SPEC_LOCATION")
     if api_spec_location is None:
         logger.info("API_SPEC_LOCATION is not set, skipping direct upload step.")
@@ -115,7 +119,7 @@ def handler():
             break
 
     for ex_id in external_uuids:
-        if has_findings_over_x(ex_id, firetail_api_token):
+        if has_findings_over_x(ex_id, org_uuid, firetail_api_token):
             raise "Error - This action found errors with your spec"
 
 
@@ -140,8 +144,16 @@ def get_context(context):
     )
 
 
-def has_findings_over_x(ex_id: str):
-    pass
+def has_findings_over_x(ex_id: str, org_uuid: str, api_token: str):
+    endpoint = f"/organisations/{org_uuid}/events/external-id/{ex_id}"
+    event_resp = requests.get(endpoint, headers={"x-ft-api-key": api_token, "Content-Type": "application/json"})
+    if event_resp.status_code != 200:
+        logger_wrapper("ERROR", {"message": "Non 200 response from events", "resp": event_resp})
+    thresholds = {"CRITICAL": 1, "HIGH": 1, "MEDIUM": 4, "LOW": 10}  # note - skipping informational.
+    findings = event_resp.get("initialFindingSeverities")
+    for level, limit in thresholds.items():
+        if findings.get(level, 0) > limit:
+            raise Exception(f"Findings breached limit: {findings}")
 
 
 if __name__ == "__main__":

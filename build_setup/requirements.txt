@@ -5,3 +5,5 @@ dacite==1.8.1
 tree_sitter==0.20.2
 PyGithub==1.59.1
 jsonschema==4.19.0
+requests
+git+ssh://git@github.com/FireTail-io/python-commons-library.git@v1.0.118
