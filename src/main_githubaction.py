@@ -90,7 +90,11 @@ def handler():
                     continue
 
                 for language_analyser in language_analysers:
-                    _, openapi_specs_from_analysis = language_analyser(full_path, file_contents)
+                    try:
+                        _, openapi_specs_from_analysis = language_analyser(full_path, file_contents)
+                    except Exception as e:
+                        logger.critical(f"{full_path}: Could not analyse, exception: {e}")
+                        continue
                     for openapi_spec_source, openapi_spec in openapi_specs_from_analysis.items():
                         logger.info(f"{full_path}: Created OpenAPI spec via {language} static analysis...")
                         external_uuid = str(uuid.uuid4())
