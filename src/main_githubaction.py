@@ -161,6 +161,7 @@ def findings_breach_threshold(ex_id: str, org_uuid: str, api_token: str):
         print("ERROR", {"message": "Non 200 response from events", "resp": event_resp, "resp_text": event_resp.text})
         return
     thresholds = get_thresholds()
+    print("Event resp json was -> ", event_resp.json())
     findings = event_resp.json().get("initialFindingSeverities", {})
     for level, limit in thresholds.items():
         if findings.get(level, 0) > limit:
