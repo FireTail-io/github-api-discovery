@@ -113,7 +113,7 @@ def handler():
         # We don't have anything else to check, just return.
         return
     # We have external IDs now check for finding counts
-    wait_time = os.environ.get("FINDING_TIMEOUT_SECONDS", 20)
+    wait_time = os.environ.get("FINDING_TIMEOUT_SECONDS", 60)
     while True:
         # we loop until we have elapsed the timeout
         if (time.time() - last_time) > wait_time:
