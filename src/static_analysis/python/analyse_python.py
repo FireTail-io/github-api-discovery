@@ -20,12 +20,12 @@ def get_imports(module: ast.Module) -> list[str]:
 
 def analyse_python(file_path: str, get_file_contents: Callable[[], str]) -> tuple[set[str], dict[str, dict]]:
     if not file_path.endswith(".py"):
-        return (set(), {})
+        return set(), {}
 
     try:
         parsed_module = ast.parse(get_file_contents())
-    except SyntaxError:
-        return (set(), {})
+    except SyntaxError:  # pragma: no cover
+        return set(), {}
 
     imported_modules = get_imports(parsed_module)
 

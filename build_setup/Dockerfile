@@ -35,8 +35,8 @@ COPY tests/ /github-api-discovery/tests/
 RUN pytest --cov /github-api-discovery --cov-report=xml:coverage.xml -vv -x
 
 FROM build-python as runtime
-RUN chmod +x /github-api-discovery/src/local_handler.py
-CMD [ "python", "/github-api-discovery/src/local_handler.py" ]
+RUN chmod +x /github-api-discovery/src/main.py
+CMD [ "python", "/github-api-discovery/src/main.py" ]
 
 FROM public.ecr.aws/lambda/python:3.10 as build-python-lambda
 RUN yum install gcc -y
@@ -56,4 +56,4 @@ RUN PYTHONPATH=${LAMBDA_TASK_ROOT} pytest --cov ${LAMBDA_TASK_ROOT} --cov-report
 
 FROM build-python-lambda as runtime-lambda
 RUN ls -la ${LAMBDA_TASK_ROOT}
-CMD [ "lambda_handler.handler" ]
+CMD [ "main_awslambda.handler" ]

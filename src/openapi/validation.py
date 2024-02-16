@@ -13,28 +13,16 @@ def resolve_and_validate_openapi_spec(file_contents: str) -> dict | None:
         backend="openapi-spec-validator",
         lazy=True,
     )
-    try:
-        parser.parse()
-    except:  # noqa: E722
-        # In the future, maybe we can provide some proper details here.
-        return None
+    parser.parse()
     return parser.specification
 
 
 def parse_resolve_and_validate_openapi_spec(file_path: str, get_file_contents: Callable[[], str]) -> dict | None:
     # First check it's a valid JSON/YAML file before passing it over to Prance
     if file_path.endswith(".json"):
-        try:
-            file_contents = json.loads(get_file_contents())
-        except:  # noqa: E722
-            return None
-
+        file_contents = json.loads(get_file_contents())
     elif file_path.endswith((".yaml", ".yml")):
-        try:
-            file_contents = yaml.safe_load(get_file_contents())
-        except:  # noqa: E722
-            return None
-
+        file_contents = yaml.safe_load(get_file_contents())
     else:
         return None
 
